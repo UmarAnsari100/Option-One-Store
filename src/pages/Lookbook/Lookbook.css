@@ -1,0 +1,310 @@
+.lookbook-page-wrapper {
+  padding-top: 100px;
+  background-color: var(--color-neutral);
+  min-height: 100vh;
+}
+
+.lookbook-title-banner {
+  padding: 4.5rem 0;
+  background: var(--color-white);
+  border-bottom: 1px solid var(--color-border);
+}
+
+.editorial-vol {
+  font-family: var(--font-ui);
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.25em;
+  color: var(--color-accent);
+  text-transform: uppercase;
+}
+
+.lookbook-title-h1 {
+  font-family: var(--font-headline);
+  font-size: 3rem;
+  font-weight: 700;
+  color: var(--color-text-main);
+  margin-top: 0.5rem;
+}
+
+.lookbook-subtitle {
+  font-family: var(--font-ui);
+  font-size: 0.85rem;
+  color: var(--color-text-muted);
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  margin-top: 0.25rem;
+}
+
+/* Sections List */
+.lookbook-sections-list {
+  display: flex;
+  flex-direction: column;
+  background: var(--color-neutral);
+}
+
+.lookbook-slide-section {
+  display: flex;
+  flex-direction: column;
+}
+
+/* Parallax Frame */
+.look-image-frame {
+  position: relative;
+  width: 100%;
+  height: 80vh;
+  min-height: 500px;
+  overflow: hidden;
+  border-bottom: 1px solid var(--color-border);
+}
+
+.look-parallax-bg {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 120%; /* slightly taller for parallax scroll */
+  background-size: cover;
+  background-position: center;
+  background-attachment: fixed; /* Standard CSS parallax scroll */
+}
+
+/* Fallback for touch devices where background-attachment: fixed lags */
+@media (hover: none) {
+  .look-parallax-bg {
+    background-attachment: scroll;
+    height: 100%;
+  }
+}
+
+.look-overlay-tint {
+  position: absolute;
+  inset: 0;
+  background: rgba(26, 26, 26, 0.15);
+}
+
+/* Description Text Card */
+.look-text-block {
+  padding: 4.5rem 0;
+  display: flex;
+  justify-content: center;
+  text-align: center;
+}
+
+.look-text-wrapper {
+  max-width: 650px;
+}
+
+.look-sub {
+  font-family: var(--font-ui);
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 0.15em;
+  color: var(--color-text-muted);
+  text-transform: uppercase;
+}
+
+.look-text-wrapper h2 {
+  font-family: var(--font-headline);
+  font-size: 2.25rem;
+  font-weight: 600;
+  color: var(--color-text-main);
+  margin-top: 0.5rem;
+  margin-bottom: 1rem;
+}
+
+.look-text-wrapper p {
+  font-family: var(--font-ui);
+  font-size: 0.9rem;
+  line-height: 1.7;
+  color: var(--color-text-muted);
+}
+
+/* Hotspots Pin structure */
+.look-hotspot-container {
+  position: absolute;
+  z-index: 10;
+}
+
+.hotspot-pin {
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  background: var(--color-primary);
+  color: var(--color-white);
+  border: 1.5px solid var(--color-white);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+  transition: all 0.4s cubic-bezier(0.22, 1, 0.36, 1);
+  position: relative;
+}
+
+/* Pulse ring around pin */
+.hotspot-pin::after {
+  content: '';
+  position: absolute;
+  inset: -6px;
+  border-radius: 50%;
+  border: 1px solid var(--color-primary);
+  animation: hotspot-pulse 2s infinite ease-in-out;
+  pointer-events: none;
+}
+
+.hotspot-pin:hover,
+.hotspot-pin.active {
+  background: var(--color-accent);
+  border-color: var(--color-white);
+  transform: scale(1.15) rotate(45deg);
+}
+
+.hotspot-pin.active::after {
+  border-color: var(--color-accent);
+}
+
+@keyframes hotspot-pulse {
+  0% {
+    transform: scale(0.9);
+    opacity: 0.8;
+  }
+  100% {
+    transform: scale(1.3);
+    opacity: 0;
+  }
+}
+
+/* Hotspot popup preview card styling */
+.hotspot-popup-card {
+  position: absolute;
+  bottom: 35px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 260px;
+  background: var(--color-white);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.12);
+  display: flex;
+  padding: 0.75rem;
+  gap: 0.75rem;
+  z-index: 100;
+  pointer-events: auto;
+}
+
+/* triangle arrow under popup */
+.hotspot-popup-card::after {
+  content: '';
+  position: absolute;
+  top: 100%;
+  left: 50%;
+  transform: translateX(-50%);
+  border: 8px solid transparent;
+  border-top-color: var(--color-white);
+  z-index: 99;
+}
+
+.popup-card-img {
+  width: 70px;
+  height: 80px;
+  object-fit: cover;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--color-border);
+  background: var(--color-neutral);
+}
+
+.popup-card-details {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+.popup-brand {
+  font-family: var(--font-ui);
+  font-size: 0.55rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  color: var(--color-accent);
+  letter-spacing: 0.1em;
+}
+
+.popup-title {
+  font-family: var(--font-headline);
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: var(--color-text-main);
+  margin-top: 1px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 150px;
+}
+
+.popup-price {
+  font-family: var(--font-ui);
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: var(--color-text-main);
+  margin-top: 1px;
+  margin-bottom: auto;
+}
+
+.popup-actions {
+  display: flex;
+  gap: 0.35rem;
+  margin-top: 0.5rem;
+}
+
+.popup-action-btn {
+  flex: 1;
+  height: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.25rem;
+  font-family: var(--font-ui);
+  font-size: 0.65rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  cursor: pointer;
+  border-radius: 2px;
+  border: none;
+  text-decoration: none;
+}
+
+.popup-action-btn.view {
+  background: var(--color-neutral);
+  color: var(--color-text-main);
+  border: 1px solid var(--color-border);
+}
+
+.popup-action-btn.bag {
+  background: var(--color-primary);
+  color: var(--color-white);
+}
+
+.popup-action-btn.bag:disabled {
+  background: var(--color-secondary);
+  color: var(--color-text-muted);
+  cursor: not-allowed;
+}
+
+@media (max-width: 768px) {
+  .look-image-frame {
+    height: 60vh;
+  }
+  .lookbook-title-h1 {
+    font-size: 2.25rem;
+  }
+  .look-text-wrapper h2 {
+    font-size: 1.75rem;
+  }
+  .hotspot-popup-card {
+    width: 220px;
+  }
+  .popup-card-img {
+    width: 55px;
+    height: 65px;
+  }
+}

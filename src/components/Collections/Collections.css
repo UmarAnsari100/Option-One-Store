@@ -1,0 +1,122 @@
+.collections-section {
+  background-color: var(--color-white);
+}
+
+.collection-row {
+  display: flex;
+  align-items: center;
+  gap: 4rem;
+  margin-bottom: 8rem;
+}
+
+.collection-row:last-child {
+  margin-bottom: 0;
+}
+
+.collection-row.reverse {
+  flex-direction: row-reverse;
+}
+
+.collection-image-col {
+  flex: 1;
+  position: relative;
+  overflow: hidden;
+  border-radius: var(--radius-lg);
+  aspect-ratio: 16 / 10;
+}
+
+.collection-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform var(--transition-slow);
+}
+
+.collection-image-col:hover .collection-img {
+  transform: scale(1.05);
+}
+
+.collection-content-col {
+  flex: 1;
+  display: flex;
+  justify-content: center;
+}
+
+.collection-text-wrapper {
+  max-width: 450px;
+}
+
+.collection-subtitle {
+  font-family: var(--font-ui);
+  font-size: 0.75rem;
+  letter-spacing: 0.15em;
+  color: var(--color-text-muted);
+  text-transform: uppercase;
+  margin-bottom: 1.5rem;
+  display: block;
+}
+
+.collection-title {
+  font-family: var(--font-headline);
+  font-size: clamp(1.85rem, 5vw, 2.75rem);
+  color: var(--color-text-main);
+  margin-bottom: 1.5rem;
+}
+
+.collection-desc {
+  color: var(--color-text-muted);
+  font-size: 1rem;
+  line-height: 1.8;
+  margin-bottom: 2.5rem;
+}
+
+.collection-cta {
+  font-family: var(--font-ui);
+  font-size: 0.85rem;
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  color: var(--color-text-main);
+  text-transform: uppercase;
+  position: relative;
+  padding-bottom: 0.25rem;
+  display: inline-block;
+}
+
+.collection-cta::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  height: 1px;
+  background-color: var(--color-text-main);
+  transition: width var(--transition-medium);
+}
+
+.collection-cta:hover::after {
+  width: 0%;
+}
+
+@media (max-width: 992px) {
+  .collection-row,
+  .collection-row.reverse {
+    flex-direction: column;
+    gap: 3rem;
+    margin-bottom: 6rem;
+  }
+  
+  .collection-image-col {
+    width: 100%;
+  }
+
+  .collection-content-col {
+    width: 100%;
+    justify-content: flex-start;
+  }
+}
+
+@media (max-width: 768px) {
+  .collection-title {
+    font-size: 2.25rem;
+  }
+}
