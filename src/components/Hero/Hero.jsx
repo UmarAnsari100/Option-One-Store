@@ -163,7 +163,7 @@ const Hero = () => {
                 </div>
                 <div className="card-meta">
                   <h5>Classic Watch</h5>
-                  <span className="card-price">$299.00</span>
+                  <span className="card-price">Rs 2999.00</span>
                   <div className="card-rating">
                     {[...Array(5)].map((_, i) => (
                       <Star key={i} size={9} fill="var(--color-accent)" color="var(--color-accent)" />
@@ -192,7 +192,7 @@ const Hero = () => {
                 </div>
                 <div className="card-meta">
                   <h5>Olive Handbag</h5>
-                  <span className="card-price">$189.00</span>
+                  <span className="card-price">Rs 1799.00</span>
                 </div>
               </motion.div>
 
@@ -216,7 +216,7 @@ const Hero = () => {
                 </div>
                 <div className="card-meta">
                   <h5>Emerald Pendant</h5>
-                  <span className="card-price">$159.00</span>
+                  <span className="card-price">Rs 1599.00</span>
                 </div>
               </motion.div>
             </div>
