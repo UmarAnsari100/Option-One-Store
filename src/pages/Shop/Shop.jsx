@@ -15,7 +15,7 @@ const Shop = () => {
   // Primary filters state
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('all');
-  const [maxPrice, setMaxPrice] = useState(700000);
+  const [maxPrice, setMaxPrice] = useState(25000);
   const [sortBy, setSortBy] = useState('featured');
   const [isMobileFilterOpen, setIsMobileFilterOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
@@ -69,7 +69,7 @@ const Shop = () => {
 
   // Unique values derived from data
   const uniqueBrands = Array.from(new Set(products.map((p) => p.brand))).sort();
-  const uniqueColors = ['Gold', 'Silver', 'Black', 'Emerald', 'Beige', 'Navy', 'Cognac', 'Burgundy', 'Rose Gold'];
+  const uniqueColors = Array.from(new Set(products.flatMap((p) => p.colorOptions || []))).sort();
   const uniqueMaterials = Array.from(new Set(products.map((p) => p.material))).sort();
   const uniqueGenders = ['Men', 'Women', 'Unisex'];
   const uniqueCollections = Array.from(new Set(products.map((p) => p.collection))).sort();
@@ -78,7 +78,7 @@ const Shop = () => {
   const handleClearFilters = () => {
     setSearchQuery('');
     setSelectedCategory('all');
-    setMaxPrice(700000);
+    setMaxPrice(25000);
     setSortBy('featured');
     setSelectedBrands([]);
     setSelectedColors([]);
@@ -238,7 +238,7 @@ const Shop = () => {
             <div className="filter-group">
               <h4 className="filter-title">Categories</h4>
               <ul className="category-list">
-                {['all', 'watches', 'handbags', 'wallets', 'jewelry', 'sunglasses', 'shoes', 'fragrances', 'accessories', 'belts', 'travel bags'].map((cat) => (
+                {['all', 'watches', 'jewelry', 'bags', 'automotive', 'electronics', 'audio'].map((cat) => (
                   <li key={cat}>
                     <button
                       className={`category-btn ${selectedCategory === cat ? 'active' : ''}`}
@@ -260,18 +260,18 @@ const Shop = () => {
               <div className="price-slider-container">
                 <input
                   type="range"
-                  min="10000"
-                  max="700000"
-                  step="5000"
+                  min="500"
+                  max="25000"
+                  step="500"
                   value={maxPrice}
                   onChange={(e) => setMaxPrice(Number(e.target.value))}
                   className="price-slider"
                   aria-label="Price range filter"
                 />
                 <div className="price-labels">
-                  <span>Rs. 10k</span>
+                  <span>Rs. 500</span>
                   <span className="current-price-label">{formatPrice(maxPrice)}</span>
-                  <span>Rs. 700k</span>
+                  <span>Rs. 25k</span>
                 </div>
               </div>
             </div>

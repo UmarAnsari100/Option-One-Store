@@ -337,7 +337,7 @@ const Product = () => {
                     className={`vertical-thumb-btn ${activeImage === img ? 'active' : ''}`}
                     onClick={() => setActiveImage(img)}
                   >
-                    <img src={img} alt={`Angle ${idx + 1}`} />
+                    <img src={img} alt={`Angle ${idx + 1}`} onError={(e) => { e.target.src = "https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?q=80&w=800&auto=format&fit=crop"; }} />
                   </button>
                 ))}
               </div>
@@ -371,7 +371,7 @@ const Product = () => {
                     onTouchStart={handleTouchStart}
                     onTouchEnd={handleTouchEnd}
                   >
-                    <img src={activeImage} alt={product.name} className="magnifier-target-img" />
+                    <img src={activeImage} alt={product.name} className="magnifier-target-img" onError={(e) => { e.target.src = "https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?q=80&w=800&auto=format&fit=crop"; }} />
                     <div className="magnifier-lens" style={magnifierStyle} />
                     <div className="gallery-maximize-floating">
                       <Maximize2 size={13} />
@@ -886,7 +886,7 @@ const Product = () => {
             >
               <div className="container sticky-panel-inner">
                 <div className="sticky-product-details">
-                  <img src={product.image1} alt={product.name} className="sticky-thumb" />
+                  <img src={product.image1} alt={product.name} className="sticky-thumb" onError={(e) => { e.target.src = "https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?q=80&w=800&auto=format&fit=crop"; }} />
                   <div className="sticky-title-meta">
                     <h5>{product.name}</h5>
                     <div className="sticky-stars">

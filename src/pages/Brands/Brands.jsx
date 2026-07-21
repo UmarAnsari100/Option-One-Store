@@ -18,154 +18,141 @@ import './Brands.css';
 const BRANDS_DATA = [
   {
     id: 1,
-    name: 'Rolex',
-    origin: 'Switzerland',
+    name: 'OUBAOER',
+    origin: 'Guangdong',
     category: 'Watches',
-    description: 'The absolute standard of prestige, precision, and timeless horological excellence.',
-    productsCount: 42,
+    description: 'Exquisite automatic mechanical timepieces engineered with tourbillon movements.',
+    productsCount: 1,
     popularity: 9.8,
-    logo: 'https://images.unsplash.com/photo-1547996160-81dfa63595aa?q=80&w=300&auto=format&fit=crop',
-    founded: '1905',
-    headline: 'Prestige & Chronometric Precision'
+    logo: 'https://img.drz.lazcdn.com/static/pk/p/bfb18a56816da1d1bd822744707ab910.jpg_400x400q75.avif',
+    founded: '1998',
+    headline: 'Tourbillon Mechanical Heritage'
   },
   {
     id: 2,
-    name: 'Cartier',
-    origin: 'France',
-    category: 'Jewelry',
-    description: 'King of Jewellers and Jeweller of Kings, crafting exquisite ornaments and luxury timepieces.',
-    productsCount: 35,
-    popularity: 9.6,
-    logo: 'https://images.unsplash.com/photo-1599643477877-530eb83abc8e?q=80&w=300&auto=format&fit=crop',
-    founded: '1847',
-    headline: 'The Art of Exquisite Ornaments'
+    name: 'HAIQIN',
+    origin: 'Guangdong',
+    category: 'Watches',
+    description: 'Luxury automatic mechanical watches featuring waterproof tourbillon craftsmanship.',
+    productsCount: 1,
+    popularity: 9.9,
+    logo: 'https://img.drz.lazcdn.com/static/pk/p/be750acc45745acc0ea1643acda62dcf.jpg_400x400q75.avif',
+    founded: '2005',
+    headline: 'Prestige Mechanical Watches'
   },
   {
     id: 3,
-    name: 'Dior',
-    origin: 'France',
-    category: 'Fashion',
-    description: 'Pioneering high-fashion maison redefining luxury tailoring, accessories, and modern aesthetics.',
-    productsCount: 56,
+    name: 'Sports Diving',
+    origin: 'Japan',
+    category: 'Watches',
+    description: 'Luxury quartz waterproof sports diving watches crafted with solid stainless steel.',
+    productsCount: 1,
     popularity: 9.5,
-    logo: 'https://images.unsplash.com/photo-1539109136881-3be0616acf4b?q=80&w=300&auto=format&fit=crop',
-    founded: '1946',
-    headline: 'Defining Modern Haute Couture'
+    logo: 'https://img.drz.lazcdn.com/static/pk/p/e5458024c1a9d817085a611fff449656.jpg_400x400q75.avif',
+    founded: '2010',
+    headline: 'Sports Timing Utility'
   },
   {
     id: 4,
-    name: 'Chanel',
-    origin: 'France',
-    category: 'Fashion',
-    description: 'The epitome of timeless elegance, luxury handbags, classic suits, and legendary fragrances.',
-    productsCount: 48,
+    name: 'Zircon',
+    origin: 'Italy',
+    category: 'Jewelry',
+    description: 'Designer shiny luxury zircon bracelets and refined ornaments crafted for modern elegance.',
+    productsCount: 1,
     popularity: 9.7,
-    logo: 'https://images.unsplash.com/photo-1584916201218-f4242ceb4809?q=80&w=300&auto=format&fit=crop',
-    founded: '1910',
-    headline: 'Timeless Elegance & Absolute Style'
+    logo: 'https://img.drz.lazcdn.com/g/kf/S04eeb9c30f874373915dbb9c96e56af7C.jpg_400x400q75.avif',
+    founded: '2015',
+    headline: 'Refined Beauty'
   },
   {
     id: 5,
-    name: 'Louis Vuitton',
+    name: 'Fashion Bag',
     origin: 'France',
-    category: 'Leather Goods',
-    description: 'Iconic trunks and luggage maker, now a global giant of luxury monogram accessories and apparel.',
-    productsCount: 65,
-    popularity: 9.9,
-    logo: 'https://images.unsplash.com/photo-1549298916-b41d501d3772?q=80&w=300&auto=format&fit=crop',
-    founded: '1854',
-    headline: 'The Legend of Travel Monograms'
+    category: 'Bags',
+    description: 'Premium PU leather handbags, crossbody shoulder bags, and fashion travel bags.',
+    productsCount: 1,
+    popularity: 9.6,
+    logo: 'https://img.drz.lazcdn.com/static/pk/p/da2b0a487a9e2288602dea559feb24c4.jpg_400x400q75.avif',
+    founded: '2012',
+    headline: 'Modern Elegance'
   },
   {
     id: 6,
-    name: 'Gucci',
-    origin: 'Italy',
-    category: 'Fashion',
-    description: 'Bold, modern, and eclectic Italian luxury fashion house blending heritage with contemporary pop culture.',
-    productsCount: 51,
-    popularity: 9.3,
-    logo: 'https://images.unsplash.com/photo-1608231387042-66d1773070a5?q=80&w=300&auto=format&fit=crop',
-    founded: '1921',
-    headline: 'Eclectic Italian Glamour'
+    name: 'EcoOBD2',
+    origin: 'Germany',
+    category: 'Automotive',
+    description: 'Innovative chip tuning plug-and-drive diagnostic tools designed to save fuel for petrol and diesel vehicles.',
+    productsCount: 1,
+    popularity: 9.2,
+    logo: 'https://img.drz.lazcdn.com/static/pk/p/e297e57509692948907c22e2972dc56c.jpg_400x400q75.avif',
+    founded: '2018',
+    headline: 'Engine Performance Tuning'
   },
   {
     id: 7,
-    name: 'Prada',
-    origin: 'Italy',
-    category: 'Fashion',
-    description: 'Avant-garde design, intellectual luxury, and refined collections of premium Saffiano leather and nylon.',
-    productsCount: 39,
-    popularity: 9.2,
-    logo: 'https://images.unsplash.com/photo-1607522370275-f14206abe5d3?q=80&w=300&auto=format&fit=crop',
-    founded: '1913',
-    headline: 'Intellectual Luxury & Avant-Garde'
+    name: 'Gaming',
+    origin: 'USA',
+    category: 'Electronics',
+    description: 'Competitive wired gaming mice designed with responsive optical sensors and customizable RGB backlighting.',
+    productsCount: 1,
+    popularity: 9.3,
+    logo: 'https://img.drz.lazcdn.com/static/pk/p/ecaeefdce1b44e327ce7141b0e40434b.jpg_400x400q75.avif',
+    founded: '2016',
+    headline: 'Precision eSports Accessories'
   },
   {
     id: 8,
-    name: 'Hermès',
-    origin: 'France',
-    category: 'Leather Goods',
-    description: 'Ultra-exquisite craftsmanship, handmade Birkin & Kelly bags, and premium silk scarves.',
-    productsCount: 22,
-    popularity: 9.9,
-    logo: 'https://images.unsplash.com/photo-1594223274512-ad4803739b7c?q=80&w=300&auto=format&fit=crop',
-    founded: '1837',
-    headline: 'The Zenith of Handcrafted Luxury'
+    name: 'UBON',
+    origin: 'India',
+    category: 'Audio',
+    description: 'High-fidelity sound wired earphones with extra bass engineered for immersive acoustic experiences.',
+    productsCount: 1,
+    popularity: 9.4,
+    logo: 'https://img.drz.lazcdn.com/static/pk/p/37042bab3e8ae19ac73768377283b1b4.jpg_400x400q75.avif',
+    founded: '2008',
+    headline: 'Acoustic Innovation'
   },
   {
     id: 9,
-    name: 'Saint Laurent',
-    origin: 'France',
-    category: 'Fashion',
-    description: 'Chic Parisian elegance, luxury tailoring, rock-and-roll attitude, and refined leather accessories.',
-    productsCount: 34,
+    name: 'M16',
+    origin: 'China',
+    category: 'Audio',
+    description: 'Single pod Bluetooth wireless earbuds featuring advanced noise isolation and clear digital audio.',
+    productsCount: 1,
     popularity: 9.1,
-    logo: 'https://images.unsplash.com/photo-1558769132-cb1aea458c5e?q=80&w=300&auto=format&fit=crop',
-    founded: '1961',
-    headline: 'Chic Parisian Tailoring'
-  },
-  {
-    id: 10,
-    name: 'Tiffany & Co.',
-    origin: 'USA',
-    category: 'Jewelry',
-    description: 'The legendary jeweler of blue boxes, sterling silver luxury, and glamorous diamonds.',
-    productsCount: 28,
-    popularity: 9.4,
-    logo: 'https://images.unsplash.com/photo-1605100804763-247f67b3557e?q=80&w=300&auto=format&fit=crop',
-    founded: '1837',
-    headline: 'The Romance of New York Diamonds'
+    logo: 'https://img.drz.lazcdn.com/static/pk/p/d0f8afb12379f7dec3a88e1ed576d80b.jpg_400x400q75.avif',
+    founded: '2020',
+    headline: 'True Wireless Mobility'
   }
 ];
 
 // Spotlight Curated Brand Details
 const SPOTLIGHT_BRAND = {
-  name: 'Rolex',
-  founded: '1905',
-  origin: 'Geneva, Switzerland',
-  tagline: 'A crown for every achievement.',
-  image: 'https://images.unsplash.com/photo-1622434641406-a158123450f9?q=80&w=1200&auto=format&fit=crop',
-  story: 'Rolex was founded in London in 1905 by Hans Wilsdorf and Alfred Davis, later relocating to Geneva in 1919. Rolex pioneered the waterproof wristwatch ("Oyster") and the self-winding rotor mechanism. Today, it stands as the global emblem of quiet luxury, engineering mastery, and social prestige, preserving watchmaking heritage with unmatched mechanical longevity.',
+  name: 'OUBAOER',
+  founded: '1998',
+  origin: 'Guangdong',
+  tagline: 'Precision mechanical luxury.',
+  image: 'https://img.drz.lazcdn.com/static/pk/p/bfb18a56816da1d1bd822744707ab910.jpg_400x400q75.avif',
+  story: 'OUBAOER creates premium automatic mechanical wristwatches for those who command the room. Crafted with tourbillon movements and genuine leather straps, each timepiece is a statement of horological mastery, blending timeless design with contemporary mechanical performance.',
   timeline: [
-    { year: '1905', event: 'Hans Wilsdorf launches the watchmaking company in London.' },
-    { year: '1926', event: 'Creation of the Oyster, the first waterproof wristwatch.' },
-    { year: '1931', event: 'Patenting of the self-winding Perpetual rotor mechanism.' },
-    { year: '1953', event: 'The Submariner dive watch is unveiled, conquering deep-sea frontiers.' },
-    { year: '2026', event: 'Option One is designated as an elite curated digital retail partner.' }
+    { year: '1998', event: 'Atelier launched with a vision for premium automatic movements.' },
+    { year: '2012', event: 'Introduction of the signature Tourbillon Leather series.' },
+    { year: '2026', event: 'Global expansion of high-end mechanical collections.' }
   ],
   collections: [
-    { name: 'Oyster Perpetual', desc: 'The purest expression of the Oyster concept.' },
-    { name: 'Submariner', desc: 'The archetype of the divers’ watch.' },
-    { name: 'Cosmograph Daytona', desc: 'Designed to meet the demands of professional racing drivers.' }
+    { name: 'Mechanical Automatic', desc: 'Precision mechanical self-winding wristwatches.' },
+    { name: 'Tourbillon Leather', desc: 'Classically styled watches featuring genuine leather bands.' }
   ]
 };
 
 // Available categories with visual metrics
 const CATEGORIES_DATA = [
-  { name: 'Fashion', count: '146 Products', icon: '👔' },
-  { name: 'Watches', count: '98 Products', icon: '⌚' },
-  { name: 'Jewelry', count: '63 Products', icon: '💎' },
-  { name: 'Leather Goods', count: '87 Products', icon: '💼' }
+  { name: 'Watches', count: '3 Products', icon: '⌚' },
+  { name: 'Jewelry', count: '1 Product', icon: '💎' },
+  { name: 'Bags', count: '1 Product', icon: '👜' },
+  { name: 'Automotive', count: '1 Product', icon: '🚗' },
+  { name: 'Electronics', count: '1 Product', icon: '💻' },
+  { name: 'Audio', count: '2 Products', icon: '🎧' }
 ];
 
 const alphabets = ['All', ...'ABCDEFGHIJKLMNOPQRSTUVWXYZ'.split('')];

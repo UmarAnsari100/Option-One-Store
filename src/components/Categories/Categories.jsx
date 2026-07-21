@@ -7,21 +7,21 @@ const categories = [
     id: 1,
     title: 'Watches',
     subtitle: 'TIMELESS HERITAGE',
-    image: 'https://images.unsplash.com/photo-1523170335258-f5ed11844a49?q=80&w=1000&auto=format&fit=crop',
+    image: 'https://img.drz.lazcdn.com/static/pk/p/bfb18a56816da1d1bd822744707ab910.jpg_400x400q75.avif',
     link: '/shop?category=watches'
   },
   {
     id: 2,
-    title: 'Handbags',
+    title: 'Bags',
     subtitle: 'MODERN ELEGANCE',
-    image: 'https://images.unsplash.com/photo-1584916201218-f4242ceb4809?q=80&w=1000&auto=format&fit=crop',
-    link: '/shop?category=handbags'
+    image: 'https://img.drz.lazcdn.com/static/pk/p/da2b0a487a9e2288602dea559feb24c4.jpg_400x400q75.avif',
+    link: '/shop?category=bags'
   },
   {
     id: 3,
     title: 'Jewelry',
     subtitle: 'REFINED BEAUTY',
-    image: 'https://images.unsplash.com/photo-1599643477874-5c866f466cb5?q=80&w=1000&auto=format&fit=crop',
+    image: 'https://img.drz.lazcdn.com/g/kf/S04eeb9c30f874373915dbb9c96e56af7C.jpg_400x400q75.avif',
     link: '/shop?category=jewelry'
   }
 ];

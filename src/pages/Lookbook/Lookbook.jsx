@@ -21,17 +21,17 @@ const Lookbook = () => {
       hotspots: [
         {
           id: 'h-1-1',
-          productId: 1, // Watches: Rolex Classic
+          productId: 4, // Watches: OUBAOER Mechanical automatic
           top: '45%',
           left: '30%',
           label: 'Maison Chronometer'
         },
         {
           id: 'h-1-2',
-          productId: 17, // Handbags: Louis Vuitton Pebbled Leather
+          productId: 3, // Bags: Women PU Leather Handbag
           top: '72%',
           left: '60%',
-          label: 'Executive Saffiano Port'
+          label: 'Executive Handbag'
         }
       ]
     },
@@ -44,17 +44,17 @@ const Lookbook = () => {
       hotspots: [
         {
           id: 'h-2-1',
-          productId: 49, // Jewelry: Tiffany Emerald Pendant
+          productId: 2, // Jewelry: Zircon Bracelet
           top: '35%',
           left: '52%',
-          label: 'Forest Emerald Pendant'
+          label: 'Forest Zircon Bracelet'
         },
         {
           id: 'h-2-2',
-          productId: 65, // Sunglasses: Tom Ford Sunglasses
+          productId: 7, // Watches: Sports Diving watch
           top: '18%',
           left: '42%',
-          label: 'Wayfarer Acetate Frames'
+          label: 'Diving Sports watch'
         }
       ]
     },
@@ -67,17 +67,17 @@ const Lookbook = () => {
       hotspots: [
         {
           id: 'h-3-1',
-          productId: 145, // Travel Bags: Rolex canvas weekender
+          productId: 8, // Audio: UBON-80 Wired Earphones
           top: '60%',
           left: '48%',
-          label: 'Weekender Duffle Bag'
+          label: 'Wired Earphones'
         },
         {
           id: 'h-3-2',
-          productId: 81, // Shoes: Louboutin Loafers
+          productId: 5, // Electronics: Gaming mouse
           top: '88%',
           left: '35%',
-          label: 'Chelsea Calfskin Boots'
+          label: 'Wired Gaming Mouse'
         }
       ]
     }
@@ -143,7 +143,7 @@ const Lookbook = () => {
                           exit={{ opacity: 0, scale: 0.9, y: 10 }}
                           transition={{ duration: 0.3, ease: [0.22, 1, 0.36, 1] }}
                         >
-                          <img src={prod.image1} alt={prod.name} className="popup-card-img" />
+                          <img src={prod.image1} alt={prod.name} className="popup-card-img" onError={(e) => { e.target.src = "https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?q=80&w=800&auto=format&fit=crop"; }} />
                           <div className="popup-card-details">
                             <span className="popup-brand">{prod.brand}</span>
                             <h5 className="popup-title">{prod.name}</h5>

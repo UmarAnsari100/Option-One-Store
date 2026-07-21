@@ -348,7 +348,7 @@ const Checkout = () => {
                     <div className="cart-checkout-items">
                       {cart.map((item) => (
                         <div key={item.product.id} className="cart-checkout-row">
-                          <img src={item.product.image1} alt={item.product.name} />
+                          <img src={item.product.image1} alt={item.product.name} onError={(e) => { e.target.src = "https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?q=80&w=800&auto=format&fit=crop"; }} />
                           <div className="row-details">
                             <span className="row-brand">{item.product.brand}</span>
                             <h5>{item.product.name}</h5>
@@ -1001,7 +1001,7 @@ const Checkout = () => {
                   <div className="checkout-summary-list">
                     {cart.map((item) => (
                       <div key={item.product.id} className="checkout-summary-item">
-                        <img src={item.product.image1} alt={item.product.name} />
+                        <img src={item.product.image1} alt={item.product.name} onError={(e) => { e.target.src = "https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?q=80&w=800&auto=format&fit=crop"; }} />
                         <div className="summary-item-details">
                           <h5>{item.product.name}</h5>
                           <p>Qty: {item.quantity} &times; {formatPrice(item.product.price)}</p>

@@ -46,13 +46,13 @@ const Footer = () => {
   };
 
   const lifestyleGallery = [
-    { id: 1, img: 'https://images.unsplash.com/photo-1547996160-81dfa63595aa?q=80&w=800&auto=format&fit=crop', name: 'Chronology & Heritage', category: 'watches', sizeClass: 'grid-large' },
-    { id: 2, img: 'https://images.unsplash.com/photo-1584916201218-f4242ceb4809?q=80&w=800&auto=format&fit=crop', name: 'Haute Leathercraft', category: 'handbags', sizeClass: 'grid-tall' },
-    { id: 3, img: 'https://images.unsplash.com/photo-1599643477874-5c866f466cb5?q=80&w=800&auto=format&fit=crop', name: 'Refined Vermeil', category: 'jewelry', sizeClass: 'grid-small' },
-    { id: 4, img: 'https://images.unsplash.com/photo-1511499767150-a48a237f0083?q=80&w=800&auto=format&fit=crop', name: 'Signature Eyewear', category: 'sunglasses', sizeClass: 'grid-small' },
-    { id: 5, img: 'https://images.unsplash.com/photo-1594035910387-fea47794261f?q=80&w=800&auto=format&fit=crop', name: 'Maison Aromatics', category: 'fragrances', sizeClass: 'grid-wide' },
-    { id: 6, img: 'https://images.unsplash.com/photo-1549298916-b41d501d3772?q=80&w=800&auto=format&fit=crop', name: 'Atelier Footwear', category: 'shoes', sizeClass: 'grid-small' },
-    { id: 7, img: 'https://images.unsplash.com/photo-1627124703853-3a6639901989?q=80&w=800&auto=format&fit=crop', name: 'Curated Essentials', category: 'accessories', sizeClass: 'grid-small' }
+    { id: 1, img: 'https://img.drz.lazcdn.com/static/pk/p/bfb18a56816da1d1bd822744707ab910.jpg_400x400q75.avif', name: 'Maison Chronometers', category: 'watches', sizeClass: 'grid-wide' },
+    { id: 2, img: 'https://img.drz.lazcdn.com/static/pk/p/da2b0a487a9e2288602dea559feb24c4.jpg_400x400q75.avif', name: 'Atelier Bags', category: 'bags', sizeClass: 'grid-tall' },
+    { id: 3, img: 'https://img.drz.lazcdn.com/g/kf/S04eeb9c30f874373915dbb9c96e56af7C.jpg_400x400q75.avif', name: 'Refined Jewelry', category: 'jewelry', sizeClass: 'grid-small' },
+    { id: 4, img: 'https://img.drz.lazcdn.com/static/pk/p/37042bab3e8ae19ac73768377283b1b4.jpg_400x400q75.avif', name: 'Audio Essentials', category: 'audio', sizeClass: 'grid-small' },
+    { id: 5, img: 'https://img.drz.lazcdn.com/static/pk/p/ecaeefdce1b44e327ce7141b0e40434b.jpg_400x400q75.avif', name: 'Premium Electronics', category: 'electronics', sizeClass: 'grid-wide' },
+    { id: 6, img: 'https://img.drz.lazcdn.com/static/pk/p/e297e57509692948907c22e2972dc56c.jpg_400x400q75.avif', name: 'Automotive Upgrades', category: 'automotive', sizeClass: 'grid-small' },
+    { id: 7, img: 'https://img.drz.lazcdn.com/static/pk/p/be750acc45745acc0ea1643acda62dcf.jpg_400x400q75.avif', name: 'Atelier Timepieces', category: 'watches', sizeClass: 'grid-small' }
   ];
 
   return (
@@ -141,11 +141,11 @@ const Footer = () => {
             <h5 className="footer-heading">SHOP ATELIER</h5>
             <ul className="footer-links">
               <li><Link to="/shop?category=watches">Luxury Watches</Link></li>
-              <li><Link to="/shop?category=handbags">Designer Handbags</Link></li>
               <li><Link to="/shop?category=jewelry">Fine Jewelry</Link></li>
-              <li><Link to="/shop?category=sunglasses">Sunglasses</Link></li>
-              <li><Link to="/shop?category=shoes">Shoes & Footwear</Link></li>
-              <li><Link to="/shop?category=fragrances">Fragrances</Link></li>
+              <li><Link to="/shop?category=bags">Designer Bags</Link></li>
+              <li><Link to="/shop?category=automotive">Automotive Upgrades</Link></li>
+              <li><Link to="/shop?category=electronics">Premium Electronics</Link></li>
+              <li><Link to="/shop?category=audio">Acoustic Audio</Link></li>
             </ul>
           </div>
 

@@ -34,8 +34,8 @@ const ProductCard = ({ product }) => {
     <div className="product-card">
       <div className="product-image-container">
         <Link to={`/product/${product.id}`}>
-          <img src={product.image1} alt={product.name} className="product-image primary" loading="lazy" />
-          <img src={product.image2} alt={product.name} className="product-image secondary" loading="lazy" />
+          <img src={product.image1} alt={product.name} className="product-image primary" loading="lazy" onError={(e) => { e.target.src = "https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?q=80&w=800&auto=format&fit=crop"; }} />
+          <img src={product.image2} alt={product.name} className="product-image secondary" loading="lazy" onError={(e) => { e.target.src = "https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?q=80&w=800&auto=format&fit=crop"; }} />
         </Link>
         
         {/* Badges */}

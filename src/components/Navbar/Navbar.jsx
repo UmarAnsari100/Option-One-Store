@@ -15,9 +15,9 @@ const Navbar = () => {
   const [recentSearches, setRecentSearches] = useState(() => {
     try {
       const saved = localStorage.getItem('recentSearches');
-      return saved ? JSON.parse(saved) : ['Watches', 'Handbags', 'Rolex', 'Emerald'];
+      return saved ? JSON.parse(saved) : ['Watch', 'Earbuds', 'Bracelet', 'Handbag'];
     } catch {
-      return ['Watches', 'Handbags', 'Rolex', 'Emerald'];
+      return ['Watch', 'Earbuds', 'Bracelet', 'Handbag'];
     }
   });
 
@@ -200,15 +200,11 @@ const Navbar = () => {
                             <h4 className="mega-title">Shop By Category</h4>
                             <ul className="mega-links">
                               <li><Link to="/shop?category=watches">Watches</Link></li>
-                              <li><Link to="/shop?category=handbags">Handbags</Link></li>
-                              <li><Link to="/shop?category=wallets">Wallets</Link></li>
                               <li><Link to="/shop?category=jewelry">Jewelry</Link></li>
-                              <li><Link to="/shop?category=sunglasses">Sunglasses</Link></li>
-                              <li><Link to="/shop?category=shoes">Shoes</Link></li>
-                              <li><Link to="/shop?category=fragrances">Fragrances</Link></li>
-                              <li><Link to="/shop?category=accessories">Accessories</Link></li>
-                              <li><Link to="/shop?category=belts">Belts</Link></li>
-                              <li><Link to="/shop?category=travel bags">Travel Bags</Link></li>
+                              <li><Link to="/shop?category=bags">Bags</Link></li>
+                              <li><Link to="/shop?category=automotive">Automotive</Link></li>
+                              <li><Link to="/shop?category=electronics">Electronics</Link></li>
+                              <li><Link to="/shop?category=audio">Audio</Link></li>
                             </ul>
                           </div>
 
@@ -216,16 +212,15 @@ const Navbar = () => {
                           <div className="mega-col">
                             <h4 className="mega-title">Luxury Houses</h4>
                             <ul className="mega-links">
-                              <li><Link to="/shop?brand=Rolex">Rolex</Link></li>
-                              <li><Link to="/shop?brand=Cartier">Cartier</Link></li>
-                              <li><Link to="/shop?brand=Dior">Dior</Link></li>
-                              <li><Link to="/shop?brand=Chanel">Chanel</Link></li>
-                              <li><Link to="/shop?brand=Louis Vuitton">Louis Vuitton</Link></li>
-                              <li><Link to="/shop?brand=Gucci">Gucci</Link></li>
-                              <li><Link to="/shop?brand=Prada">Prada</Link></li>
-                              <li><Link to="/shop?brand=Hermès">Hermès</Link></li>
-                              <li><Link to="/shop?brand=Saint Laurent">Saint Laurent</Link></li>
-                              <li><Link to="/shop?brand=Tiffany & Co.">Tiffany & Co.</Link></li>
+                              <li><Link to="/shop?brand=OUBAOER">OUBAOER</Link></li>
+                              <li><Link to="/shop?brand=HAIQIN">HAIQIN</Link></li>
+                              <li><Link to="/shop?brand=Sports Diving">Sports Diving</Link></li>
+                              <li><Link to="/shop?brand=Zircon">Zircon</Link></li>
+                              <li><Link to="/shop?brand=Fashion Bag">Fashion Bag</Link></li>
+                              <li><Link to="/shop?brand=EcoOBD2">EcoOBD2</Link></li>
+                              <li><Link to="/shop?brand=Gaming">Gaming</Link></li>
+                              <li><Link to="/shop?brand=UBON">UBON</Link></li>
+                              <li><Link to="/shop?brand=M16">M16</Link></li>
                             </ul>
                           </div>
 
@@ -234,7 +229,7 @@ const Navbar = () => {
                             <h4 className="mega-title">Featured Collection</h4>
                             <div className="mega-featured-card">
                               <img
-                                src="https://images.unsplash.com/photo-1507679799987-c73779587ccf?q=80&w=300&auto=format&fit=crop"
+                                src="https://img.drz.lazcdn.com/static/pk/p/bfb18a56816da1d1bd822744707ab910.jpg_400x400q75.avif"
                                 alt="Executive Collection"
                                 className="mega-featured-img"
                               />
@@ -254,15 +249,15 @@ const Navbar = () => {
                             <h4 className="mega-title">Product Spotlight</h4>
                             <div className="mega-featured-card">
                               <img
-                                src="https://images.unsplash.com/photo-1542496658-e33a6d0d50f6?q=80&w=300&auto=format&fit=crop"
-                                alt="Rolex Classic Watch"
+                                src="https://img.drz.lazcdn.com/static/pk/p/be750acc45745acc0ea1643acda62dcf.jpg_400x400q75.avif"
+                                alt="HAIQIN Tourbillon"
                                 className="mega-featured-img"
                               />
                               <div className="mega-featured-overlay">
                                 <span className="highlight-tag">MAISON FAVORITE</span>
-                                <h5>Rolex Signature Watch</h5>
-                                <p className="price">$14,800</p>
-                                <Link to="/product/1" className="mega-btn-arrow">
+                                <h5>HAIQIN Waterproof Tourbillon</h5>
+                                <p className="price">Rs. 17,000</p>
+                                <Link to="/product/6" className="mega-btn-arrow">
                                   <span>View Piece</span>
                                   <ArrowRight size={12} />
                                 </Link>
@@ -438,7 +433,7 @@ const Navbar = () => {
                                 className="search-product-row-card"
                                 onClick={() => setIsSearchOpen(false)}
                               >
-                                <img src={p.image1} alt={p.name} className="search-card-thumb" />
+                                <img src={p.image1} alt={p.name} className="search-card-thumb" onError={(e) => { e.target.src = "https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?q=80&w=800&auto=format&fit=crop"; }} />
                                 <div className="search-card-info">
                                   <span className="search-card-brand">{p.brand}</span>
                                   <h6 className="search-card-name">{p.name}</h6>
@@ -517,7 +512,7 @@ const Navbar = () => {
                                     setIsSearchOpen(false);
                                   }}
                                 >
-                                  <img src={p.image1} alt={p.name} className="search-card-thumb" />
+                                  <img src={p.image1} alt={p.name} className="search-card-thumb" onError={(e) => { e.target.src = "https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?q=80&w=800&auto=format&fit=crop"; }} />
                                   <div className="search-card-info">
                                     <span className="search-card-brand">{p.brand}</span>
                                     <h6 className="search-card-name">{p.name}</h6>

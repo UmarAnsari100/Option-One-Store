@@ -66,7 +66,7 @@ const Compare = () => {
                           >
                             <X size={16} />
                           </button>
-                          <img src={product.image1} alt={product.name} className="compare-card-image" />
+                          <img src={product.image1} alt={product.name} className="compare-card-image" onError={(e) => { e.target.src = "https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?q=80&w=800&auto=format&fit=crop"; }} />
                           <span className="compare-brand-tag">{product.brand}</span>
                           <Link to={`/product/${product.id}`} className="compare-product-name">{product.name}</Link>
                         </div>

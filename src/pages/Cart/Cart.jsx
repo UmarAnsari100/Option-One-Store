@@ -69,7 +69,7 @@ const Cart = () => {
                     {/* Info */}
                     <div className="cart-item-info">
                       <div className="cart-item-img-container">
-                        <img src={item.product.image1} alt={item.product.name} />
+                        <img src={item.product.image1} alt={item.product.name} onError={(e) => { e.target.src = "https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?q=80&w=800&auto=format&fit=crop"; }} />
                       </div>
                       <div className="cart-item-details">
                         <Link to={`/product/${item.product.id}`} className="cart-item-name">

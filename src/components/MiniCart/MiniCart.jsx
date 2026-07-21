@@ -111,7 +111,7 @@ const MiniCart = () => {
                     const finalPrice = prod.price * (1 - prod.discount / 100);
                     return (
                       <div className="mini-cart-item" key={prod.id}>
-                        <img src={prod.image1} alt={prod.name} className="item-thumbnail" />
+                        <img src={prod.image1} alt={prod.name} className="item-thumbnail" onError={(e) => { e.target.src = "https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?q=80&w=800&auto=format&fit=crop"; }} />
                         <div className="item-details">
                           <span className="item-brand">{prod.brand}</span>
                           <Link

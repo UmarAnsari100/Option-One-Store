@@ -37,7 +37,7 @@ const QuickViewModal = () => {
           {/* Images */}
           <div className="quickview-gallery">
             <div className="quickview-main-image-container">
-              <img src={product.image1} alt={product.name} className="quickview-image" />
+              <img src={product.image1} alt={product.name} className="quickview-image" onError={(e) => { e.target.src = "https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?q=80&w=800&auto=format&fit=crop"; }} />
             </div>
           </div>
 

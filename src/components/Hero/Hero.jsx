@@ -49,7 +49,7 @@ const Hero = () => {
   const card3X = useTransform(springMouseX, [-0.5, 0.5], [-2, 2]);
   const card3Y = useTransform(springMouseY, [-0.5, 0.5], [2, -2]);
 
-  const isHandbagInWishlist = isInWishlist(2);
+  const isHandbagInWishlist = isInWishlist(3);
 
   return (
     <section className="hero-section" onMouseMove={handleMouseMove}>
@@ -105,7 +105,7 @@ const Hero = () => {
 
             {/* Paragraph */}
             <motion.p className="hero-paragraph-split" variants={staggerItem(shouldReduceMotion)}>
-              Step into a space where time, structure, and design align. Discover custom-crafted heritage watches, fine grain leather handbags, and radiant emerald jewels curated for the discerning individual.
+              Step into a space where time, structure, and design align. Discover premium mechanical watches, designer handbags, shiny zircon bracelets, and high-fidelity audio gear curated for the discerning individual.
             </motion.p>
 
             {/* Actions */}
@@ -159,11 +159,11 @@ const Hero = () => {
               >
                 <div className="card-badge">NEW ARRIVAL</div>
                 <div className="card-product-img">
-                  <img src="https://images.unsplash.com/photo-1524592094714-0f0654e20314?q=80&w=150&auto=format&fit=crop" alt="Heritage Watch" />
+                  <img src="https://img.drz.lazcdn.com/static/pk/p/bfb18a56816da1d1bd822744707ab910.jpg_400x400q75.avif" alt="OUBAOER Watch" />
                 </div>
                 <div className="card-meta">
-                  <h5>Classic Watch</h5>
-                  <span className="card-price">Rs 2999.00</span>
+                  <h5>OUBAOER Watch</h5>
+                  <span className="card-price">Rs 12000.00</span>
                   <div className="card-rating">
                     {[...Array(5)].map((_, i) => (
                       <Star key={i} size={9} fill="var(--color-accent)" color="var(--color-accent)" />
@@ -182,17 +182,17 @@ const Hero = () => {
               >
                 <button
                   className={`card-icon-btn ${isHandbagInWishlist ? 'active' : ''}`}
-                  onClick={() => toggleWishlist({ id: 2, name: 'Olive Green Handbag', price: 189.00 })}
+                  onClick={() => toggleWishlist({ id: 3, name: 'Women PU Leather Handbag', price: 1150.00 })}
                   aria-label="Add to wishlist"
                 >
                   <Heart size={11} fill={isHandbagInWishlist ? "var(--color-accent)" : "none"} color={isHandbagInWishlist ? "var(--color-accent)" : "currentColor"} />
                 </button>
                 <div className="card-product-img">
-                  <img src="https://images.unsplash.com/photo-1584916201218-f4242ceb4809?q=80&w=150&auto=format&fit=crop" alt="Premium Handbag" />
+                  <img src="https://img.drz.lazcdn.com/static/pk/p/da2b0a487a9e2288602dea559feb24c4.jpg_400x400q75.avif" alt="Women Handbag" />
                 </div>
                 <div className="card-meta">
-                  <h5>Olive Handbag</h5>
-                  <span className="card-price">Rs 1799.00</span>
+                  <h5>Women Handbag</h5>
+                  <span className="card-price">Rs 1150.00</span>
                 </div>
               </motion.div>
 
@@ -206,17 +206,17 @@ const Hero = () => {
               >
                 <button
                   className="card-icon-btn add-to-cart"
-                  onClick={() => addToCart(4, 1)}
+                  onClick={() => addToCart(2, 1)}
                   aria-label="Add to cart"
                 >
                   <ShoppingBag size={11} />
                 </button>
                 <div className="card-product-img">
-                  <img src="https://images.unsplash.com/photo-1599643477877-530eb83abc8e?q=80&w=150&auto=format&fit=crop" alt="Emerald Jewelry" />
+                  <img src="https://img.drz.lazcdn.com/g/kf/S04eeb9c30f874373915dbb9c96e56af7C.jpg_400x400q75.avif" alt="Zircon Bracelet" />
                 </div>
                 <div className="card-meta">
-                  <h5>Emerald Pendant</h5>
-                  <span className="card-price">Rs 1599.00</span>
+                  <h5>Zircon Bracelet</h5>
+                  <span className="card-price">Rs 880.00</span>
                 </div>
               </motion.div>
             </div>
