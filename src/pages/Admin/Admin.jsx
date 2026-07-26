@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useContext } from 'react';
+import SEO from '../../components/SEO/SEO';
 import { ShopContext } from '../../context/ShopContext';
 import { cjApi } from '../../services/cjApi';
 import { backupService } from '../../services/backupService';
@@ -135,6 +136,7 @@ const Admin = () => {
   if (!adminToken) {
     return (
       <div className="admin-login-page">
+        <SEO title="Admin Control Center Login | Option One Store" description="Maison Executive Admin Control Center for Option One Store." canonical="https://optiononestore.com/admin" />
         <div className="admin-login-card glass-panel shadow-glow">
           <div className="admin-login-header text-center">
             <div className="admin-lock-icon">

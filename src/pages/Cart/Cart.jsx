@@ -1,4 +1,6 @@
 import React, { useContext, useState } from 'react';
+import SEO from '../../components/SEO/SEO';
+import { seoService } from '../../services/seoService';
 import { ShopContext } from '../../context/ShopContext';
 import { Link } from 'react-router-dom';
 import { Trash2, ShoppingBag, ArrowRight } from 'lucide-react';
@@ -32,6 +34,12 @@ const Cart = () => {
 
   return (
     <div className="cart-page-wrapper">
+      <SEO
+        title="Shopping Cart | Option One Store"
+        description="Review your selected luxury timepieces, designer bags, and accessories in your Option One Store shopping bag."
+        canonical="https://optiononestore.com/cart"
+        jsonLd={seoService.getBreadcrumbSchema([{ name: 'Shopping Cart', path: '/cart' }])}
+      />
       {/* Header */}
       <div className="cart-header-banner">
         <div className="container">

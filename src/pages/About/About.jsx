@@ -1,11 +1,20 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { ShieldCheck, Award, Sparkles } from 'lucide-react';
+import SEO from '../../components/SEO/SEO';
+import { seoService } from '../../services/seoService';
 import './About.css';
 
 const About = () => {
   return (
     <div className="about-page-wrapper">
+      <SEO
+        title="About Us | Option One Store - Maison de Luxe"
+        description="Learn about the heritage of Option One Store, our commitment to quiet luxury, Swiss-trained horology, and Italian leather craftsmanship."
+        canonical="https://optiononestore.com/about"
+        jsonLd={seoService.getBreadcrumbSchema([{ name: 'About Us', path: '/about' }])}
+      />
+
       {/* Editorial Header */}
       <div className="about-header">
         <div className="container">

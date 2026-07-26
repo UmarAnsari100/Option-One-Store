@@ -12,6 +12,8 @@ import {
   TrendingUp,
   Star
 } from 'lucide-react';
+import SEO from '../../components/SEO/SEO';
+import { seoService } from '../../services/seoService';
 import './Brands.css';
 
 // Rich mock data for Luxury Brands
@@ -218,6 +220,12 @@ const Brands = () => {
 
   return (
     <div className="brands-page-wrapper">
+      <SEO
+        title="Designer Houses & Partner Brands | Option One Store"
+        description="Explore luxury watches, leather houses, fine jewelry studios, and audio manufacturers partnered with Option One Store."
+        canonical="https://optiononestore.com/brands"
+        jsonLd={seoService.getBreadcrumbSchema([{ name: 'Designer Brands', path: '/brands' }])}
+      />
       
       {/* Editorial Hero Section */}
       <section className="brands-hero-section">

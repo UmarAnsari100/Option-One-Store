@@ -281,7 +281,7 @@ const Navbar = () => {
             </button>
 
             {/* Profile / Customer Account */}
-            <Link to="/account" className="icon-btn hide-mobile-icon" aria-label="Customer Account">
+            <Link to="/account" className="icon-btn" aria-label="Customer Account" onClick={() => setIsMobileMenuOpen(false)}>
               <User size={20} />
             </Link>
 
@@ -338,8 +338,13 @@ const Navbar = () => {
                   </li>
                 ))}
                 <li>
-                  <Link to="/about" className="mobile-nav-link" onClick={() => setIsMobileMenuOpen(false)}>
-                    Profile / About
+                  <Link to="/account" className={`mobile-nav-link ${location.pathname === '/account' ? 'active' : ''}`} onClick={() => setIsMobileMenuOpen(false)}>
+                    User Dashboard
+                  </Link>
+                </li>
+                <li>
+                  <Link to="/about" className={`mobile-nav-link ${location.pathname === '/about' ? 'active' : ''}`} onClick={() => setIsMobileMenuOpen(false)}>
+                    About Us
                   </Link>
                 </li>
               </ul>

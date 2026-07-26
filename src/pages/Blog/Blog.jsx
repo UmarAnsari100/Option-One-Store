@@ -1,4 +1,6 @@
 import React from 'react';
+import SEO from '../../components/SEO/SEO';
+import { seoService } from '../../services/seoService';
 import { Sparkles, Calendar, Clock, ArrowRight } from 'lucide-react';
 import './Blog.css';
 
@@ -62,6 +64,12 @@ const Blog = () => {
 
   return (
     <div className="blog-page-wrapper">
+      <SEO
+        title="Luxury Editorial & Horology Insights | Option One Store Blog"
+        description="Inside horological engineering, fine leather craftsmanship, wardrobe guidelines, and accessory etiquette curated by Option One Store concierge editors."
+        canonical="https://optiononestore.com/blog"
+        jsonLd={seoService.getBreadcrumbSchema([{ name: 'Luxury Editorial', path: '/blog' }])}
+      />
       {/* Blog Hero */}
       <section className="blog-hero-section">
         <div className="container text-center">

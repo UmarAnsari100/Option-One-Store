@@ -1,5 +1,5 @@
-import React, { useState, useContext } from 'react';
-import { ShopContext } from '../../context/ShopContext';
+import SEO from '../../components/SEO/SEO';
+import { seoService } from '../../services/seoService';
 import { Mail, Phone, MapPin, Clock, Send, CheckCircle2, MessageSquare } from 'lucide-react';
 import './Contact.css';
 
@@ -51,6 +51,12 @@ const Contact = () => {
 
   return (
     <div className="contact-page-wrapper">
+      <SEO
+        title="Contact Concierge | Option One Store Support"
+        description="Connect with Option One Store private concierge for sizing guidance, order inquiries, and luxury product support."
+        canonical="https://optiononestore.com/contact"
+        jsonLd={seoService.getBreadcrumbSchema([{ name: 'Contact Concierge', path: '/contact' }])}
+      />
       {/* Header */}
       <div className="contact-header">
         <div className="container">

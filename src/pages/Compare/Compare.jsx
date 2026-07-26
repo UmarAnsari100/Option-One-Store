@@ -1,4 +1,6 @@
 import React, { useContext } from 'react';
+import SEO from '../../components/SEO/SEO';
+import { seoService } from '../../services/seoService';
 import { Link } from 'react-router-dom';
 import { ShopContext } from '../../context/ShopContext';
 import { X, Star, ShoppingBag, ArrowLeft, Layers } from 'lucide-react';
@@ -19,6 +21,12 @@ const Compare = () => {
 
   return (
     <div className="compare-page-wrapper">
+      <SEO
+        title="Compare Luxury Products | Option One Store"
+        description="Compare specifications, movement details, materials, and pricing of Option One Store timepieces and accessories."
+        canonical="https://optiononestore.com/compare"
+        jsonLd={seoService.getBreadcrumbSchema([{ name: 'Compare Pieces', path: '/compare' }])}
+      />
       {/* Header Banner */}
       <div className="compare-header">
         <div className="container header-flex">

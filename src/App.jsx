@@ -86,7 +86,9 @@ function App() {
         <MiniCart />
         <Toast />
         <QuickViewModal />
-        <AppRoutes />
+        <main id="main-content">
+          <AppRoutes />
+        </main>
         <Footer />
         <WhatsAppFloatingButton />
       </Router>

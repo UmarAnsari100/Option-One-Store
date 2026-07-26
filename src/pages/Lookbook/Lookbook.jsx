@@ -1,4 +1,6 @@
 import React, { useContext, useState } from 'react';
+import SEO from '../../components/SEO/SEO';
+import { seoService } from '../../services/seoService';
 import { Link } from 'react-router-dom';
 import { ShopContext } from '../../context/ShopContext';
 import { ShoppingBag, Eye, Plus } from 'lucide-react';
@@ -94,6 +96,12 @@ const Lookbook = () => {
 
   return (
     <div className="lookbook-page-wrapper" onClick={() => setActiveHotspot(null)}>
+      <SEO
+        title="Interactive Style Lookbook | Option One Store"
+        description="Explore the Autumn/Winter Edition 2026 interactive style lookbook curated by Option One Store."
+        canonical="https://optiononestore.com/lookbook"
+        jsonLd={seoService.getBreadcrumbSchema([{ name: 'Lookbook', path: '/lookbook' }])}
+      />
       {/* Editorial Title Banner */}
       <section className="lookbook-title-banner text-center">
         <span className="editorial-vol">MAISON JOURNAL</span>

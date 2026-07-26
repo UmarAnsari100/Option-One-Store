@@ -1,6 +1,8 @@
 import React, { useContext, useState, useEffect, useRef } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import { ShopContext } from '../../context/ShopContext';
+import SEO from '../../components/SEO/SEO';
+import { seoService } from '../../services/seoService';
 import ProductCard from '../../components/ProductCard/ProductCard';
 import SkeletonLoader from '../../components/SkeletonLoader/SkeletonLoader';
 import { formatPrice } from '../../utils/formatter';
@@ -305,6 +307,21 @@ const Product = () => {
 
   return (
     <div className="product-page-wrapper">
+      <SEO
+        title={`${product.name} | Option One Store`}
+        description={product.description || `Buy ${product.name} with secure checkout, worldwide shipping, and premium quality from Option One Store.`}
+        canonical={`https://optiononestore.com/product/${product.id}`}
+        ogImage={product.image1}
+        ogType="product"
+        jsonLd={[
+          seoService.getProductSchema(product),
+          seoService.getBreadcrumbSchema([
+            { name: 'Shop', path: '/shop' },
+            { name: product.category, path: `/shop?category=${product.category}` },
+            { name: product.name, path: `/product/${product.id}` }
+          ])
+        ]}
+      />
       {/* Breadcrumbs */}
       <div className="product-breadcrumbs">
         <div className="container">

@@ -88,7 +88,9 @@ const ProductCard = ({ product }) => {
         <span className="product-card-brand">{product.brand}</span>
 
         {/* Product Name */}
-        <Link to={`/product/${product.id}`} className="product-name">{product.name}</Link>
+        <h3 className="product-name-heading" style={{ fontSize: 'inherit', fontWeight: 'inherit', margin: 0 }}>
+          <Link to={`/product/${product.id}`} className="product-name">{product.name}</Link>
+        </h3>
 
         {/* Rating Stars */}
         <div className="product-rating">

@@ -1,4 +1,5 @@
 import React, { useContext, useState } from 'react';
+import SEO from '../../components/SEO/SEO';
 import { useLocation, Link } from 'react-router-dom';
 import { ShopContext } from '../../context/ShopContext';
 import { CheckCircle2, CreditCard, ShieldCheck, ArrowRight, ArrowLeft, Truck, Check, Copy, Upload } from 'lucide-react';
@@ -302,6 +303,11 @@ const Checkout = () => {
 
   return (
     <div className="checkout-page-wrapper">
+      <SEO
+        title="Secure Checkout | Option One Store"
+        description="Complete your order securely with 256-bit encryption. Cash on Delivery, Easypaisa, JazzCash, and Bank Wire supported."
+        canonical="https://optiononestore.com/checkout"
+      />
       {/* Header Banner */}
       <div className="checkout-header-banner">
         <div className="container">

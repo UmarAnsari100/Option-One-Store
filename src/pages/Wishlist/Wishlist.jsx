@@ -1,6 +1,5 @@
-import React, { useContext, useEffect, useState } from 'react';
-import { useSearchParams, Link } from 'react-router-dom';
-import { ShopContext } from '../../context/ShopContext';
+import SEO from '../../components/SEO/SEO';
+import { seoService } from '../../services/seoService';
 import ProductCard from '../../components/ProductCard/ProductCard';
 import { Heart, ShoppingBag, Share2, Plus, Check } from 'lucide-react';
 import './Wishlist.css';
@@ -62,6 +61,12 @@ const Wishlist = () => {
 
   return (
     <div className="wishlist-page-wrapper">
+      <SEO
+        title="My Wishlist & Favorites | Option One Store"
+        description="View and manage your saved luxury watches, leather goods, fine jewelry, and audio accessories at Option One Store."
+        canonical="https://optiononestore.com/wishlist"
+        jsonLd={seoService.getBreadcrumbSchema([{ name: 'Wishlist', path: '/wishlist' }])}
+      />
       {/* Header Banner */}
       <div className="wishlist-header">
         <div className="container header-flex-container">

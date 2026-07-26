@@ -1,4 +1,6 @@
 import React, { useState, useContext } from 'react';
+import SEO from '../../components/SEO/SEO';
+import { seoService } from '../../services/seoService';
 import { ShopContext } from '../../context/ShopContext';
 import { formatPrice } from '../../utils/formatter';
 import { cjApi } from '../../services/cjApi';
@@ -111,6 +113,12 @@ const Account = () => {
   if (!customerUser) {
     return (
       <div className="account-auth-page">
+        <SEO
+          title="Sign In / Register Customer Account | Option One Store"
+          description="Access your Option One Store customer portal to view order history, saved addresses, wishlist favorites, and package tracking."
+          canonical="https://optiononestore.com/account"
+          jsonLd={seoService.getBreadcrumbSchema([{ name: 'Customer Account', path: '/account' }])}
+        />
         <div className="container">
           <motion.div
             className="account-auth-card glass-panel shadow-glow"

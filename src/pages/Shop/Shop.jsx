@@ -5,8 +5,10 @@ import ProductCard from '../../components/ProductCard/ProductCard';
 import SkeletonLoader from '../../components/SkeletonLoader/SkeletonLoader';
 import { SlidersHorizontal, Search, X, Star } from 'lucide-react';
 import { motion, LayoutGroup } from 'framer-motion';
-import './Shop.css';
+import SEO from '../../components/SEO/SEO';
+import { seoService } from '../../services/seoService';
 import { formatPrice } from '../../utils/formatter';
+import './Shop.css';
 
 const Shop = () => {
   const { products } = useContext(ShopContext);
@@ -194,8 +196,16 @@ const Shop = () => {
       return a.id - b.id;
     });
 
+  const pageTitle = selectedCategory !== 'all' ? `${selectedCategory.charAt(0).toUpperCase() + selectedCategory.slice(1)} Collection` : 'Signature Collections & Luxury Catalog';
+
   return (
     <div className="shop-page-wrapper">
+      <SEO
+        title={`${pageTitle} | Option One Store`}
+        description={`Explore our curated ${selectedCategory !== 'all' ? selectedCategory : 'luxury'} collection featuring designer timepieces, fine jewelry, leather bags, and electronics with worldwide shipping.`}
+        canonical={`https://optiononestore.com/shop${selectedCategory !== 'all' ? `?category=${selectedCategory}` : ''}`}
+        jsonLd={seoService.getBreadcrumbSchema([{ name: 'Shop', path: '/shop' }])}
+      />
       {/* Header Banner */}
       <div className="shop-hero-header">
         <div className="container">
