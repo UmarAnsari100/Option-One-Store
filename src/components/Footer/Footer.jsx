@@ -153,11 +153,11 @@ const Footer = () => {
           <div className="footer-col">
             <h5 className="footer-heading">SERVICES</h5>
             <ul className="footer-links">
+              <li><Link to="/account">Customer Account</Link></li>
+              <li><Link to="/admin">Admin Control Center</Link></li>
               <li><Link to="/contact">Private Concierge</Link></li>
               <li><Link to="/compare">Compare Pieces</Link></li>
               <li><Link to="/wishlist">My Favorites</Link></li>
-              <li><Link to="/shipping">Shipping & Returns</Link></li>
-              <li><Link to="/store-locator">Boutique Finder</Link></li>
             </ul>
           </div>
 

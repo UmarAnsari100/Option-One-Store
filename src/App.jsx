@@ -1,5 +1,5 @@
 import { BrowserRouter as Router, Routes, Route, useLocation } from 'react-router-dom';
-import React from 'react';
+import React, { lazy, Suspense } from 'react';
 import Navbar from './components/Navbar/Navbar';
 import Footer from './components/Footer/Footer';
 import Home from './pages/Home/Home';
@@ -23,6 +23,17 @@ import WhatsAppFloatingButton from './components/WhatsAppFloatingButton/WhatsApp
 import { ShopProvider } from './context/ShopProvider';
 import { motion, AnimatePresence } from 'framer-motion';
 
+// Code-split heavy Admin and Customer Portal pages
+const Admin = lazy(() => import('./pages/Admin/Admin'));
+const Account = lazy(() => import('./pages/Account/Account'));
+
+// Loading Fallback Spinner
+const PageFallback = () => (
+  <div style={{ minHeight: '60vh', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+    <div style={{ color: 'var(--color-primary)', fontWeight: 600 }}>Loading Maison Module...</div>
+  </div>
+);
+
 // Premium Page Transition Wrapper
 const PageWrapper = ({ children }) => {
   return (
@@ -42,22 +53,26 @@ const AppRoutes = () => {
   const location = useLocation();
 
   return (
-    <AnimatePresence mode="wait">
-      <Routes location={location} key={location.pathname}>
-        <Route path="/" element={<PageWrapper><Home /></PageWrapper>} />
-        <Route path="/shop" element={<PageWrapper><Shop /></PageWrapper>} />
-        <Route path="/brands" element={<PageWrapper><Brands /></PageWrapper>} />
-        <Route path="/compare" element={<PageWrapper><Compare /></PageWrapper>} />
-        <Route path="/lookbook" element={<PageWrapper><Lookbook /></PageWrapper>} />
-        <Route path="/blog" element={<PageWrapper><Blog /></PageWrapper>} />
-        <Route path="/product/:id" element={<PageWrapper><Product /></PageWrapper>} />
-        <Route path="/cart" element={<PageWrapper><Cart /></PageWrapper>} />
-        <Route path="/checkout" element={<PageWrapper><Checkout /></PageWrapper>} />
-        <Route path="/about" element={<PageWrapper><About /></PageWrapper>} />
-        <Route path="/contact" element={<PageWrapper><Contact /></PageWrapper>} />
-        <Route path="/wishlist" element={<PageWrapper><Wishlist /></PageWrapper>} />
-      </Routes>
-    </AnimatePresence>
+    <Suspense fallback={<PageFallback />}>
+      <AnimatePresence mode="wait">
+        <Routes location={location} key={location.pathname}>
+          <Route path="/" element={<PageWrapper><Home /></PageWrapper>} />
+          <Route path="/shop" element={<PageWrapper><Shop /></PageWrapper>} />
+          <Route path="/brands" element={<PageWrapper><Brands /></PageWrapper>} />
+          <Route path="/compare" element={<PageWrapper><Compare /></PageWrapper>} />
+          <Route path="/lookbook" element={<PageWrapper><Lookbook /></PageWrapper>} />
+          <Route path="/blog" element={<PageWrapper><Blog /></PageWrapper>} />
+          <Route path="/product/:id" element={<PageWrapper><Product /></PageWrapper>} />
+          <Route path="/cart" element={<PageWrapper><Cart /></PageWrapper>} />
+          <Route path="/checkout" element={<PageWrapper><Checkout /></PageWrapper>} />
+          <Route path="/about" element={<PageWrapper><About /></PageWrapper>} />
+          <Route path="/contact" element={<PageWrapper><Contact /></PageWrapper>} />
+          <Route path="/wishlist" element={<PageWrapper><Wishlist /></PageWrapper>} />
+          <Route path="/account" element={<PageWrapper><Account /></PageWrapper>} />
+          <Route path="/admin" element={<PageWrapper><Admin /></PageWrapper>} />
+        </Routes>
+      </AnimatePresence>
+    </Suspense>
   );
 };
 

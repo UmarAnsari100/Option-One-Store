@@ -502,11 +502,16 @@ const Shop = () => {
               </div>
             ) : filteredProducts.length === 0 ? (
               <div className="no-products text-center">
-                <h2>No Products Found</h2>
-                <p>We couldn't find any items matching your selected criteria.</p>
-                <button className="btn btn-primary" onClick={handleClearFilters}>
-                  Reset All Filters
-                </button>
+                <h2>No Published Products Found</h2>
+                <p>Import products from CJ Dropshipping via Admin Hub, review draft details, and click <strong>Publish</strong> to display products live in store.</p>
+                <div style={{ display: 'flex', gap: '1rem', justifyContent: 'center', marginTop: '1.25rem' }}>
+                  <button className="btn btn-primary" onClick={handleClearFilters}>
+                    Reset Filters
+                  </button>
+                  <a href="/admin" className="btn btn-secondary">
+                    Go to Admin CJ Sync Center
+                  </a>
+                </div>
               </div>
             ) : (
               <LayoutGroup>

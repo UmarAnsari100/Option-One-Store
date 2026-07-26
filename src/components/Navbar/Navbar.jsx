@@ -280,8 +280,8 @@ const Navbar = () => {
               <Search size={20} />
             </button>
 
-            {/* Profile / About */}
-            <Link to="/about" className="icon-btn hide-mobile-icon" aria-label="Profile">
+            {/* Profile / Customer Account */}
+            <Link to="/account" className="icon-btn hide-mobile-icon" aria-label="Customer Account">
               <User size={20} />
             </Link>
 
