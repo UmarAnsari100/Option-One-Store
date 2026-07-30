@@ -28,6 +28,7 @@ import {
   Globe,
   Clock,
   History,
+  Mail,
   X
 } from 'lucide-react';
 import './Admin.css';

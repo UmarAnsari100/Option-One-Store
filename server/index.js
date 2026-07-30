@@ -83,7 +83,7 @@ app.get('/health', (req, res) => {
     timestamp: new Date().toISOString(),
     uptimeSeconds: Math.floor(process.uptime()),
     environment: process.env.NODE_ENV || 'development',
-    cjApiConfigured: Boolean(process.env.CJ_API_KEY && process.env.CJ_API_SECRET),
+    cjApiConfigured: Boolean(process.env.CJ_API_KEY),
     mode: process.env.CJ_API_KEY ? 'LIVE_CJ_API' : 'SMART_MOCK_MODE',
     memoryUsageMB: Math.round(process.memoryUsage().heapUsed / 1024 / 1024)
   });
@@ -208,9 +208,8 @@ app.get('/api/auth/verify', verifyAdminToken, (req, res) => {
  */
 app.post('/api/cj/auth/token', async (req, res) => {
   const apiKey = process.env.CJ_API_KEY;
-  const apiSecret = process.env.CJ_API_SECRET;
 
-  if (!apiKey || !apiSecret) {
+  if (!apiKey) {
     return res.json({
       success: true,
       mode: 'MOCK',
@@ -225,9 +224,7 @@ app.post('/api/cj/auth/token', async (req, res) => {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
-        email: process.env.CJ_EMAIL || '',
-        password: apiSecret,
-        apiKey: apiKey
+        apiKey: process.env.CJ_API_KEY
       })
     });
 
@@ -236,7 +233,7 @@ app.post('/api/cj/auth/token', async (req, res) => {
     if (data.code === 200 && data.data?.accessToken) {
       cjTokenCache.accessToken = data.data.accessToken;
       cjTokenCache.expiry = Date.now() + (data.data.accessTokenExpiryDate ? new Date(data.data.accessTokenExpiryDate).getTime() - Date.now() : 86400 * 1000);
-      
+
       return res.json({
         success: true,
         mode: 'LIVE',
@@ -357,6 +354,8 @@ app.get('/api/cj/products/search', async (req, res) => {
     url.searchParams.append('pageSize', pageSize);
     if (keyword) url.searchParams.append('productName', keyword);
     if (categoryId) url.searchParams.append('categoryId', categoryId);
+
+    console.log("Current CJ Token:", cjTokenCache.accessToken);
 
     const response = await fetch(url.toString(), {
       headers: {
