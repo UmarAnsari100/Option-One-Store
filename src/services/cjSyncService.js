@@ -1,36 +1,142 @@
 import { productRepository } from '../repositories/ProductRepository';
 
 /**
+ * Universal CJ Field Normalizer
+ * Extracts and cleans all properties from CJ Dropshipping API v2 JSON payloads
+ */
+export function normalizeCjItem(cjItem) {
+  if (!cjItem) return null;
+
+  // 1. Extract Title (Prefer English title, handle array / stringified JSON array)
+  let title = cjItem.productNameEn || cjItem.productName || cjItem.nameEn || cjItem.title || cjItem.name || '';
+  if (Array.isArray(title)) {
+    title = title.join(' ').trim();
+  } else if (typeof title === 'string') {
+    title = title.trim();
+    if (title.startsWith('[') && title.endsWith(']')) {
+      try {
+        const parsed = JSON.parse(title);
+        if (Array.isArray(parsed)) {
+          title = parsed.join(' ').trim();
+        }
+      } catch (e) {
+        // preserve original
+      }
+    }
+  }
+  if (!title) title = 'Imported CJ Product';
+
+  // 2. Extract Images (Handle string, array, comma-separated set, protocol relative //)
+  let images = [];
+
+  if (Array.isArray(cjItem.productImageSet)) {
+    images = cjItem.productImageSet;
+  } else if (typeof cjItem.productImageSet === 'string' && cjItem.productImageSet.trim()) {
+    images = cjItem.productImageSet.split(',').map((s) => s.trim()).filter(Boolean);
+  }
+
+  if (images.length === 0) {
+    if (Array.isArray(cjItem.productImage)) {
+      images = cjItem.productImage;
+    } else if (typeof cjItem.productImage === 'string' && cjItem.productImage.trim()) {
+      images = [cjItem.productImage.trim()];
+    }
+  }
+
+  // Prepend https: to protocol-relative URLs
+  images = images
+    .map((img) => {
+      if (typeof img === 'string') {
+        const clean = img.trim();
+        if (clean.startsWith('//')) return 'https:' + clean;
+        return clean;
+      }
+      return '';
+    })
+    .filter(Boolean);
+
+  const mainImage = images[0] || 'https://images.unsplash.com/photo-1522335789203-aabd1fc54bc9?q=80&w=800&auto=format&fit=crop';
+  const secondaryImage = images[1] || mainImage;
+
+  // 3. Extract Cost / Price
+  const rawCost = cjItem.costPrice ?? cjItem.sellPrice ?? cjItem.nowPrice ?? cjItem.variantSellPrice ?? cjItem.price ?? 0;
+  const costPrice = isNaN(parseFloat(rawCost)) ? 0 : parseFloat(rawCost);
+
+  // 4. Extract Stock / Inventory
+  const rawStock = cjItem.stock ?? cjItem.inventory ?? cjItem.quantity ?? cjItem.productStock ?? cjItem.subNum ?? cjItem.totalStock ?? 0;
+  const stock = isNaN(parseInt(rawStock, 10)) ? 0 : parseInt(rawStock, 10);
+
+  // 5. Extract Category
+  const category = cjItem.categoryName || cjItem.threeCategoryName || cjItem.twoCategoryName || cjItem.category || 'General';
+
+  // 6. Extract SKU & PID
+  const pid = cjItem.pid || cjItem.id || cjItem.productId || '';
+  const sku = cjItem.productSku || cjItem.sku || (pid ? `CJ-SKU-${pid}` : 'N/A');
+
+  // 7. Extract Description
+  let description = cjItem.description || cjItem.descriptionEn || cjItem.productDescription || cjItem.remark || '';
+  if (typeof description === 'string') {
+    description = description.replace(/<[^>]*>?/gm, '').trim();
+  }
+  if (!description) {
+    description = 'Premium curated piece from our global supplier network.';
+  }
+
+  // 8. Extract Variants
+  let variants = [];
+  const rawVariants = cjItem.variants || cjItem.variantList || cjItem.productVariants || [];
+  if (Array.isArray(rawVariants)) {
+    variants = rawVariants.map((v, idx) => ({
+      variantId: v.variantId || v.vid || `${pid}-VAR-${idx + 1}`,
+      variantName: v.variantName || v.variantKey || v.property || `Variant ${idx + 1}`,
+      variantPrice: isNaN(parseFloat(v.variantPrice || v.variantSellPrice || v.price || costPrice)) ? costPrice : parseFloat(v.variantPrice || v.variantSellPrice || v.price || costPrice),
+      variantSku: v.variantSku || v.sku || `${sku}-${idx + 1}`,
+      variantImage: v.variantImage || mainImage,
+      stock: isNaN(parseInt(v.stock || v.inventory || stock, 10)) ? stock : parseInt(v.stock || v.inventory || stock, 10)
+    }));
+  }
+
+  return {
+    pid,
+    title,
+    sku,
+    costPrice,
+    stock,
+    category,
+    mainImage,
+    secondaryImage,
+    images: images.length > 0 ? images : [mainImage],
+    description,
+    variants,
+    raw: cjItem
+  };
+}
+
+/**
  * cjSyncService - Manages Product Imports and Synchronization Locks.
  * Strictly imports items as "draft".
- * Enforces Field Lock: Sync updates stock/weight/warehouse ONLY; never overwrites manual edits!
  */
 export const cjSyncService = {
-  /**
-   * Calculate Selling Price from CJ Cost Price
-   * Formula: (CJ Cost + Freight + Handling Fee) * (1 + Margin%) rounded to .99
-   */
   calculatePrice(costPrice = 20, freightCost = 8, handlingFee = 5, marginPercent = 30) {
     const baseCost = Number(costPrice) + Number(freightCost) + Number(handlingFee);
     const calculated = baseCost * (1 + Number(marginPercent) / 100);
-    // Convert to PKR or round to .99 format
-    const roundedInt = Math.ceil(calculated * 100); // 100 PKR exchange rate factor or standard price
+    const roundedInt = Math.ceil(calculated * 100);
     return Math.max(1000, roundedInt);
   },
 
-  /**
-   * Import CJ product into internal database with status = "draft"
-   */
   importCjProduct(cjRawProduct, marginPercent = 30) {
-    const costPrice = Number(cjRawProduct.costPrice || cjRawProduct.sellPrice || 25);
+    const norm = normalizeCjItem(cjRawProduct);
+    if (!norm) return null;
+
+    const costPrice = norm.costPrice > 0 ? norm.costPrice : 25;
     const calculatedPrice = this.calculatePrice(costPrice, 8, 5, marginPercent);
 
     const draftProduct = {
-      id: `cj_${cjRawProduct.pid || Date.now()}`,
-      cjPid: cjRawProduct.pid,
-      sku: cjRawProduct.productSku || `CJ-SKU-${cjRawProduct.pid}`,
-      supplierSku: cjRawProduct.productSku || `CJ-SKU-${cjRawProduct.pid}`,
-      name: cjRawProduct.productName || 'Imported CJ Product',
+      id: `cj_${norm.pid || Date.now()}`,
+      cjPid: norm.pid,
+      sku: norm.sku,
+      supplierSku: norm.sku,
+      name: norm.title,
       brand: cjRawProduct.brand || 'Maison Selected',
       price: calculatedPrice,
       comparePrice: Math.round(calculatedPrice * 1.25),
@@ -41,14 +147,14 @@ export const cjSyncService = {
       marginPercent: marginPercent,
       rating: 4.8,
       reviews: 12,
-      badge: 'In Stock',
-      category: (cjRawProduct.categoryName || 'General').toLowerCase(),
-      image1: cjRawProduct.productImage || 'https://images.unsplash.com/photo-1522335789203-aabd1fc54bc9?q=80&w=800&auto=format&fit=crop',
-      image2: cjRawProduct.productImage || 'https://images.unsplash.com/photo-1522335789203-aabd1fc54bc9?q=80&w=800&auto=format&fit=crop',
-      images: [cjRawProduct.productImage].filter(Boolean),
-      customImages: [], // Custom uploads take priority if populated
-      description: cjRawProduct.description || 'Premium curated piece from our global supplier network.',
-      shortDescription: 'Luxury edition with precision engineering.',
+      badge: norm.stock > 0 ? 'In Stock' : 'Low Stock',
+      category: norm.category.toLowerCase(),
+      image1: norm.mainImage,
+      image2: norm.secondaryImage,
+      images: norm.images,
+      customImages: [],
+      description: norm.description,
+      shortDescription: `Luxury ${norm.category} edition with precision engineering.`,
       features: [
         'Curated global artisan craftsmanship',
         'International quality compliance certified',
@@ -57,14 +163,15 @@ export const cjSyncService = {
       specs: {
         'Origin': 'Global Warehouse',
         'Weight': `${cjRawProduct.weight || 250}g`,
-        'SKU': cjRawProduct.productSku || `CJ-SKU-${cjRawProduct.pid}`
+        'SKU': norm.sku
       },
-      stock: Number(cjRawProduct.stock || 50),
+      variants: norm.variants,
+      stock: norm.stock,
       weight: cjRawProduct.weight || 250,
       dimensions: '15cm x 10cm x 5cm',
       warehouse: 'Shenzhen Global Hub',
       source: 'cj',
-      status: 'draft', // MUST BE DRAFT ON INITIAL IMPORT
+      status: 'draft',
       isFeatured: false,
       isBestSeller: false,
       isNewArrival: true,
@@ -81,21 +188,18 @@ export const cjSyncService = {
     return productRepository.saveProduct(draftProduct);
   },
 
-  /**
-   * Synchronize inventory & stock for existing CJ products without overwriting manual copy/prices/images
-   */
   syncProductInventory(productId, updatedCjData) {
     const existing = productRepository.getById(productId);
     if (!existing) return null;
 
-    // Field Lock Enforcement: Update ONLY stock, warehouse, weight, dimensions, supplierSku
+    const norm = normalizeCjItem(updatedCjData);
+
     const syncedProduct = {
       ...existing,
-      stock: updatedCjData.stock !== undefined ? Number(updatedCjData.stock) : existing.stock,
+      stock: norm && norm.stock !== undefined ? norm.stock : existing.stock,
       weight: updatedCjData.weight || existing.weight,
       warehouse: updatedCjData.warehouse || existing.warehouse,
-      supplierSku: updatedCjData.productSku || existing.supplierSku,
-      // PRESERVE EVERYTHING ELSE:
+      supplierSku: norm ? norm.sku : existing.supplierSku,
       name: existing.name,
       description: existing.description,
       price: existing.price,

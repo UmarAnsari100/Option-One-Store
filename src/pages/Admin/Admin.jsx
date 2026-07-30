@@ -4,6 +4,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import SEO from '../../components/SEO/SEO';
 import { ShopContext } from '../../context/ShopContext';
 import { cjApi } from '../../services/cjApi';
+import { cjSyncService, normalizeCjItem } from '../../services/cjSyncService';
 import { backupService } from '../../services/backupService';
 import { aiService } from '../../services/aiService';
 import { formatPrice } from '../../utils/formatter';
@@ -626,26 +627,30 @@ const Admin = () => {
               </div>
 
               <div className="results-grid" style={{ marginTop: '1.5rem' }}>
-                {cjResults.map((cjItem) => (
-                  <div key={cjItem.pid} className="cj-result-card glass-panel">
-                    <img src={cjItem.productImage} alt={cjItem.productName} className="cj-thumb" />
-                    <div className="cj-info">
-                      <span className="cj-category">{cjItem.categoryName || 'General'}</span>
-                      <h4 className="cj-title">{cjItem.productName}</h4>
-                      <p className="cj-sku">SKU: {cjItem.productSku}</p>
-                      <div className="cj-price-row">
-                        <span>Cost: <strong>${cjItem.costPrice}</strong></span>
-                        <span>Stock: <strong>{cjItem.stock}</strong></span>
+                {cjResults.map((cjItem, index) => {
+                  const norm = normalizeCjItem(cjItem);
+                  if (!norm) return null;
+                  return (
+                    <div key={norm.pid || norm.sku || index} className="cj-result-card glass-panel">
+                      <img src={norm.mainImage} alt={norm.title} className="cj-thumb" />
+                      <div className="cj-info">
+                        <span className="cj-category">{norm.category}</span>
+                        <h4 className="cj-title" title={norm.title}>{norm.title}</h4>
+                        <p className="cj-sku">SKU: {norm.sku}</p>
+                        <div className="cj-price-row">
+                          <span>Cost: <strong>${norm.costPrice > 0 ? norm.costPrice.toFixed(2) : '0.00'}</strong></span>
+                          <span>Stock: <strong>{norm.stock}</strong></span>
+                        </div>
+                        <button
+                          className="btn btn-primary btn-sm btn-block shadow-btn"
+                          onClick={() => importCjProductToDraft(cjItem)}
+                        >
+                          Import to Drafts
+                        </button>
                       </div>
-                      <button
-                        className="btn btn-primary btn-sm btn-block shadow-btn"
-                        onClick={() => importCjProductToDraft(cjItem)}
-                      >
-                        Import to Drafts
-                      </button>
                     </div>
-                  </div>
-                ))}
+                  );
+                })}
               </div>
             </div>
           )}
