@@ -9,6 +9,11 @@ const ScrollToTop = () => {
       top: 0,
       behavior: 'smooth'
     });
+
+    // Reset document focus on route transition to prevent focus traps
+    if (document.activeElement && document.activeElement !== document.body) {
+      document.activeElement.blur();
+    }
   }, [pathname, search]);
 
   return null;
