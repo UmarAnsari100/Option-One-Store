@@ -48,30 +48,26 @@ const PageWrapper = ({ children }) => {
   );
 };
 
-// Sub-component to access route location inside Router context
+// Sub-component for App Routes
 const AppRoutes = () => {
-  const location = useLocation();
-
   return (
     <Suspense fallback={<PageFallback />}>
-      <AnimatePresence mode="wait">
-        <Routes location={location} key={location.pathname}>
-          <Route path="/" element={<PageWrapper><Home /></PageWrapper>} />
-          <Route path="/shop" element={<PageWrapper><Shop /></PageWrapper>} />
-          <Route path="/brands" element={<PageWrapper><Brands /></PageWrapper>} />
-          <Route path="/compare" element={<PageWrapper><Compare /></PageWrapper>} />
-          <Route path="/lookbook" element={<PageWrapper><Lookbook /></PageWrapper>} />
-          <Route path="/blog" element={<PageWrapper><Blog /></PageWrapper>} />
-          <Route path="/product/:id" element={<PageWrapper><Product /></PageWrapper>} />
-          <Route path="/cart" element={<PageWrapper><Cart /></PageWrapper>} />
-          <Route path="/checkout" element={<PageWrapper><Checkout /></PageWrapper>} />
-          <Route path="/about" element={<PageWrapper><About /></PageWrapper>} />
-          <Route path="/contact" element={<PageWrapper><Contact /></PageWrapper>} />
-          <Route path="/wishlist" element={<PageWrapper><Wishlist /></PageWrapper>} />
-          <Route path="/account" element={<PageWrapper><Account /></PageWrapper>} />
-          <Route path="/admin" element={<PageWrapper><Admin /></PageWrapper>} />
-        </Routes>
-      </AnimatePresence>
+      <Routes>
+        <Route path="/" element={<Home />} />
+        <Route path="/shop" element={<Shop />} />
+        <Route path="/brands" element={<Brands />} />
+        <Route path="/compare" element={<Compare />} />
+        <Route path="/lookbook" element={<Lookbook />} />
+        <Route path="/blog" element={<Blog />} />
+        <Route path="/product/:id" element={<Product />} />
+        <Route path="/cart" element={<Cart />} />
+        <Route path="/checkout" element={<Checkout />} />
+        <Route path="/about" element={<About />} />
+        <Route path="/contact" element={<Contact />} />
+        <Route path="/wishlist" element={<Wishlist />} />
+        <Route path="/account" element={<Account />} />
+        <Route path="/admin" element={<Admin />} />
+      </Routes>
     </Suspense>
   );
 };

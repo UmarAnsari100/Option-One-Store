@@ -17,7 +17,7 @@ const Shop = () => {
   // Primary filters state
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('all');
-  const [maxPrice, setMaxPrice] = useState(25000);
+  const [maxPrice, setMaxPrice] = useState(250000);
   const [sortBy, setSortBy] = useState('featured');
   const [isMobileFilterOpen, setIsMobileFilterOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
@@ -80,7 +80,7 @@ const Shop = () => {
   const handleClearFilters = () => {
     setSearchQuery('');
     setSelectedCategory('all');
-    setMaxPrice(25000);
+    setMaxPrice(250000);
     setSortBy('featured');
     setSelectedBrands([]);
     setSelectedColors([]);
@@ -271,8 +271,8 @@ const Shop = () => {
                 <input
                   type="range"
                   min="500"
-                  max="25000"
-                  step="500"
+                  max="250000"
+                  step="1000"
                   value={maxPrice}
                   onChange={(e) => setMaxPrice(Number(e.target.value))}
                   className="price-slider"
@@ -281,7 +281,7 @@ const Shop = () => {
                 <div className="price-labels">
                   <span>Rs. 500</span>
                   <span className="current-price-label">{formatPrice(maxPrice)}</span>
-                  <span>Rs. 25k</span>
+                  <span>Rs. 250k</span>
                 </div>
               </div>
             </div>

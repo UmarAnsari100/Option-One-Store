@@ -435,7 +435,7 @@ const Product = () => {
     { q: 'Is this item authentic and certified?', a: 'Yes, Option One partners directly with designer heritage houses. Every purchase includes a certificate of authenticity signed by our specialists alongside serial registration papers.' },
     { q: 'What white-glove shipping rates are available?', a: 'We offer complimentary priority insured delivery for orders exceeding $150. Items are securely couriered in temperature-stabilized crates.' },
     { q: 'How do discreet returns work?', a: 'Enjoy complimentary courier collections for returns requested within 30 days of receipt. All luxury pieces must be returned with safety lock tags intact.' },
-    { q: 'What is the international warranty scope?', a: `Your ${product.specs.Warranty || '5 Year International'} Warranty certifies complimentary annual cleaning, mechanical adjustments, bezel alignments, and leather care conditioning.` },
+    { q: 'What is the international warranty scope?', a: `Your ${product.specs?.Warranty || '5 Year International'} Warranty certifies complimentary annual cleaning, mechanical adjustments, bezel alignments, and leather care conditioning.` },
     { q: 'What payment and finance structures are supported?', a: 'We support fully encrypted secure transactions via Visa, Mastercard, American Express, Apple Pay, PayPal, and interest-free luxury finance options.' }
   ];
 
@@ -720,7 +720,7 @@ const Product = () => {
                     <div className="tab-description-box">
                       <p>{product.description}</p>
                       <ul className="tab-bullet-list">
-                        {product.features.map((feat, idx) => (
+                        {(product.features || []).map((feat, idx) => (
                           <li key={idx}>
                             <Sparkles size={11} className="bullet-glow" />
                             <span>{feat}</span>
@@ -733,7 +733,7 @@ const Product = () => {
                   {activeTab === 'specifications' && (
                     <table className="luxury-specs-table">
                       <tbody>
-                        {Object.entries(product.specs).map(([k, v]) => (
+                        {Object.entries(product.specs || {}).map(([k, v]) => (
                           <tr key={k}>
                             <td className="spec-label">{k}</td>
                             <td className="spec-desc">{v}</td>

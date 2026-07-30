@@ -117,20 +117,21 @@ const Navbar = () => {
 
   // Live filter results for search overlay
   const matchingProducts = searchQuery.trim()
-    ? products.filter(
+    ? (products || []).filter(
         (p) =>
-          p.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-          p.brand.toLowerCase().includes(searchQuery.toLowerCase()) ||
-          p.category.toLowerCase().includes(searchQuery.toLowerCase())
+          (p?.name || '').toLowerCase().includes(searchQuery.toLowerCase()) ||
+          (p?.brand || '').toLowerCase().includes(searchQuery.toLowerCase()) ||
+          (p?.category || '').toLowerCase().includes(searchQuery.toLowerCase())
       ).slice(0, 5)
     : [];
 
   const matchingCategories = searchQuery.trim()
     ? Array.from(
         new Set(
-          products
-            .filter((p) => p.category.toLowerCase().includes(searchQuery.toLowerCase()))
+          (products || [])
+            .filter((p) => (p?.category || '').toLowerCase().includes(searchQuery.toLowerCase()))
             .map((p) => p.category)
+            .filter(Boolean)
         )
       ).slice(0, 3)
     : [];
@@ -138,15 +139,16 @@ const Navbar = () => {
   const matchingBrands = searchQuery.trim()
     ? Array.from(
         new Set(
-          products
-            .filter((p) => p.brand.toLowerCase().includes(searchQuery.toLowerCase()))
+          (products || [])
+            .filter((p) => (p?.brand || '').toLowerCase().includes(searchQuery.toLowerCase()))
             .map((p) => p.brand)
+            .filter(Boolean)
         )
       ).slice(0, 3)
     : [];
 
   // Trending items to show when search is empty
-  const trendingProducts = products.filter((p) => p.rating >= 4.8).slice(0, 3);
+  const trendingProducts = (products || []).filter((p) => (p?.rating || 0) >= 4.8).slice(0, 3);
 
   const isHeroPage = location.pathname === '/';
 

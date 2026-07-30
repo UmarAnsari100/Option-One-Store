@@ -117,7 +117,7 @@ export const ShopProvider = ({ children }) => {
   // Async MySQL Data Fetch Helpers
   const refreshProducts = useCallback(async () => {
     try {
-      const prods = await productRepository.getAllProducts();
+      const prods = await productRepository.getPublished();
       setAllProducts(prods || []);
     } catch (e) {
       console.error('[ShopProvider Error] Failed to refresh products from MySQL:', e);

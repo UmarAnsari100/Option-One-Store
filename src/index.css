@@ -91,41 +91,7 @@ ul {
   list-style: none;
 }
 
-/* Accessibility Skip to Main Content Link */
-.skip-link {
-  position: absolute;
-  top: -9999px;
-  left: -9999px;
-  width: 1px;
-  height: 1px;
-  overflow: hidden;
-  clip: rect(0, 0, 0, 0);
-  white-space: nowrap;
-  z-index: 99999;
-  pointer-events: none;
-  transition: none;
-}
 
-.skip-link:focus,
-.skip-link:focus-visible {
-  top: 12px;
-  left: 12px;
-  width: auto;
-  height: auto;
-  overflow: visible;
-  clip: auto;
-  white-space: normal;
-  padding: 0.75rem 1.25rem;
-  background-color: var(--color-primary);
-  color: #ffffff !important;
-  font-family: var(--font-ui);
-  font-size: 0.9rem;
-  font-weight: 600;
-  border-radius: var(--radius-sm);
-  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.25);
-  outline: 2px solid #ffffff;
-  pointer-events: auto;
-}
 
 /* Utilities */
 .container {
