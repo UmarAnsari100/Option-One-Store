@@ -1,6 +1,8 @@
 import React, { useContext, useState, useEffect, useRef } from 'react';
-import { useParams, Link, useNavigate } from 'react-router-dom';
+import { useParams, useLocation, Link, useNavigate } from 'react-router-dom';
 import { ShopContext } from '../../context/ShopContext';
+import { cjApi } from '../../services/cjApi';
+import { normalizeCjItem } from '../../services/cjSyncService';
 import SEO from '../../components/SEO/SEO';
 import { seoService } from '../../services/seoService';
 import ProductCard from '../../components/ProductCard/ProductCard';
@@ -32,8 +34,11 @@ import { motion, AnimatePresence } from 'framer-motion';
 import './Product.css';
 
 const Product = () => {
-  const { id } = useParams();
+  const params = useParams();
+  const location = useLocation();
   const navigate = useNavigate();
+  const id = params.id;
+
   const {
     products,
     allProducts,
@@ -79,34 +84,127 @@ const Product = () => {
   const [newReviewRating, setNewReviewRating] = useState(5);
   const [newReviewName, setNewReviewName] = useState('');
 
+  // Complete Audited Data Loader for Product Detail Page
   useEffect(() => {
-    setIsLoading(true);
-    const foundProduct =
-      (products || []).find((p) => String(p.id) === String(id) || String(p.cjPid) === String(id)) ||
-      (allProducts || []).find((p) => String(p.id) === String(id) || String(p.cjPid) === String(id));
+    console.log('==================================================');
+    console.log('🔍 [Product Page Audit]');
+    console.log('• useEffect execution started');
+    console.log('• Router params:', params);
+    console.log('• Product ID parameter:', id);
+    console.log('• location.state:', location.state);
+    console.log('==================================================');
 
-    if (foundProduct) {
-      setProduct(foundProduct);
-      setActiveImage(foundProduct.image1 || foundProduct.images?.[0] || '');
-      if (foundProduct.variants && foundProduct.variants.length > 0) {
-        setSelectedVariant(foundProduct.variants[0]);
-      } else {
-        setSelectedVariant(null);
+    let isMounted = true;
+
+    async function loadProductData() {
+      console.log(`⚡ [Product Page] Invoking fetchProduct / data loader for ID: ${id}`);
+      if (isMounted) setIsLoading(true);
+
+      try {
+        if (!id) {
+          console.warn('[Product Page Warning]: No product ID found in router params');
+          if (isMounted) setProduct(null);
+          return;
+        }
+
+        // 1. Search Local Database (Published & All products)
+        const localFound =
+          (products || []).find((p) => String(p.id) === String(id) || String(p.cjPid) === String(id)) ||
+          (allProducts || []).find((p) => String(p.id) === String(id) || String(p.cjPid) === String(id));
+
+        if (localFound) {
+          console.log('[Product Page Success]: Found product in local database repository:', localFound.name);
+          if (isMounted) {
+            setProduct(localFound);
+            setActiveImage(localFound.image1 || localFound.images?.[0] || '');
+            if (localFound.variants && localFound.variants.length > 0) {
+              setSelectedVariant(localFound.variants[0]);
+            } else {
+              setSelectedVariant(null);
+            }
+            setQuantity(1);
+            setActiveMedia('gallery');
+            setAngleIndex(0);
+            setZoomScale(1);
+            setReviewsList(localFound.reviewsList || []);
+            addToRecentlyViewed(localFound);
+          }
+          return;
+        }
+
+        // 2. Check location.state
+        if (location.state?.product) {
+          console.log('[Product Page Success]: Found product in location.state payload:', location.state.product.name);
+          const stateProd = location.state.product;
+          if (isMounted) {
+            setProduct(stateProd);
+            setActiveImage(stateProd.image1 || stateProd.image || stateProd.productImage || '');
+            if (stateProd.variants && stateProd.variants.length > 0) {
+              setSelectedVariant(stateProd.variants[0]);
+            }
+            addToRecentlyViewed(stateProd);
+          }
+          return;
+        }
+
+        // 3. Fallback: Fetch directly from CJ API proxy (/api/cj/products/detail?pid=...)
+        console.log(`🌐 [Product Page Network Call]: Requesting CJ Product Detail from API proxy for PID: ${id}`);
+        const res = await cjApi.getProductDetail(id);
+
+        if (!isMounted) return;
+
+        if (res && res.success && res.data) {
+          console.log('[Product Page Success]: Received live CJ Product Detail API response:', res.data);
+          const norm = normalizeCjItem(res.data);
+          const liveCjProduct = {
+            id: norm.pid || id,
+            cjPid: norm.pid || id,
+            sku: norm.sku,
+            name: norm.title,
+            brand: res.data.brand || 'Maison Selected',
+            price: norm.costPrice ? Math.ceil(norm.costPrice * 1.3) : 2990,
+            costPrice: norm.costPrice,
+            stock: norm.stock > 0 ? norm.stock : 50,
+            category: norm.category,
+            image1: norm.mainImage,
+            image2: norm.secondaryImage,
+            images: norm.images,
+            description: norm.description,
+            variants: norm.variants,
+            rating: 4.8,
+            reviews: 12,
+            badge: norm.stock > 0 ? 'In Stock' : 'Low Stock',
+            source: 'cj',
+            status: 'published'
+          };
+
+          setProduct(liveCjProduct);
+          setActiveImage(liveCjProduct.image1);
+          if (liveCjProduct.variants && liveCjProduct.variants.length > 0) {
+            setSelectedVariant(liveCjProduct.variants[0]);
+          }
+          addToRecentlyViewed(liveCjProduct);
+        } else {
+          console.warn('[Product Page Warning]: CJ API returned unsuccessful response for PID:', id, res);
+          setProduct(null);
+        }
+      } catch (err) {
+        console.error('[Product Page Error]: Exception while loading product data:', err);
+        if (isMounted) setProduct(null);
+      } finally {
+        if (isMounted) {
+          console.log('[Product Page]: Transitioning loading state -> setIsLoading(false)');
+          setIsLoading(false);
+        }
       }
-      setQuantity(1);
-      setActiveMedia('gallery');
-      setAngleIndex(0);
-      setZoomScale(1);
-      setReviewsList(foundProduct.reviewsList || []);
-      addToRecentlyViewed(foundProduct);
-    } else {
-      setProduct(null);
     }
-    const timer = setTimeout(() => {
-      setIsLoading(false);
-    }, 450);
-    return () => clearTimeout(timer);
-  }, [id, products, allProducts]);
+
+    loadProductData();
+
+    return () => {
+      isMounted = false;
+    };
+  }, [id, products, allProducts, location.state]);
 
   // Keyboard navigation inside image gallery
   useEffect(() => {
