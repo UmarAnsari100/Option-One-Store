@@ -1,4 +1,6 @@
-import React, { useState, useEffect, useContext } from 'react';
+import React, { useState, useEffect, useContext, useRef } from 'react';
+import { Link } from 'react-router-dom';
+import { motion, AnimatePresence } from 'framer-motion';
 import SEO from '../../components/SEO/SEO';
 import { ShopContext } from '../../context/ShopContext';
 import { cjApi } from '../../services/cjApi';
@@ -30,6 +32,8 @@ import {
   Clock,
   History,
   Mail,
+  User,
+  ChevronDown,
   X
 } from 'lucide-react';
 import './Admin.css';
@@ -70,6 +74,20 @@ const Admin = () => {
   const [editingProduct, setEditingProduct] = useState(null);
   const [editorTab, setEditorTab] = useState('basic'); // 'basic', 'pricing', 'seo', 'images', 'history'
 
+  // User Account Dropdown State
+  const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
+  const userMenuRef = useRef(null);
+
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (userMenuRef.current && !userMenuRef.current.contains(event.target)) {
+        setIsUserMenuOpen(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
+
   // Health Diagnostics
   const [healthStatus, setHealthStatus] = useState(null);
 
@@ -84,6 +102,67 @@ const Admin = () => {
   // Filtered Product Lists
   const draftProducts = allProducts.filter((p) => p.status !== 'published');
   const publishedProducts = allProducts.filter((p) => p.status === 'published');
+
+  // Dynamic Tab Meta for Page Header
+  const getTabMeta = () => {
+    switch (activeTab) {
+      case 'overview':
+        return {
+          title: 'Executive Dashboard',
+          description: 'Real-time catalog performance, dropshipping sync state, and store analytics.',
+          breadcrumb: 'Executive Overview'
+        };
+      case 'sync':
+        return {
+          title: 'CJ Dropshipping Sync Center',
+          description: 'Search and import high-margin luxury products directly into your store draft queue.',
+          breadcrumb: 'CJ Catalog Sync'
+        };
+      case 'drafts':
+        return {
+          title: `Draft Product Queue (${draftProducts.length})`,
+          description: 'Review, edit pricing, optimize SEO, and publish pending catalog drafts.',
+          breadcrumb: 'Draft Queue'
+        };
+      case 'published':
+        return {
+          title: `Live Store Catalog (${publishedProducts.length})`,
+          description: 'Manage active inventory items currently published and live on Option One Store.',
+          breadcrumb: 'Live Storefront'
+        };
+      case 'orders':
+        return {
+          title: `Orders & Fulfillment (${orders.length})`,
+          description: 'Monitor customer orders, payment statuses, and CJ Dropshipping tracking numbers.',
+          breadcrumb: 'Orders & Tracking'
+        };
+      case 'backup':
+        return {
+          title: 'Backup & Recovery Management',
+          description: 'Export catalog snapshots, restore historical versions, and manage system data.',
+          breadcrumb: 'Backup & Recovery'
+        };
+      case 'theme':
+        return {
+          title: 'Store Theme Customizer',
+          description: 'Configure luxury store layout, hero messaging, and brand aesthetics.',
+          breadcrumb: 'Theme Customizer'
+        };
+      case 'settings':
+        return {
+          title: 'System Settings & Diagnostics',
+          description: 'Configure API credentials, server proxies, and environment diagnostics.',
+          breadcrumb: 'Settings & Diagnostics'
+        };
+      default:
+        return {
+          title: 'Admin Control Center',
+          description: 'Maison Executive Control Center',
+          breadcrumb: 'Overview'
+        };
+    }
+  };
+  const tabMeta = getTabMeta();
 
   // Handle Login Submission
   const handleLoginSubmit = async (e) => {
@@ -214,22 +293,111 @@ const Admin = () => {
 
   return (
     <div className="admin-dashboard-container">
-      {/* Top Header */}
+      {/* Top Header / Authenticated Luxury Admin Navbar */}
       <header className="admin-topbar glass-panel">
-        <div className="topbar-brand">
-          <ShieldCheck size={24} color="var(--color-primary)" />
-          <span>Option One Store <strong>Admin Hub</strong></span>
+        <div className="topbar-left">
+          <div className="brand-badge-icon">
+            <ShieldCheck size={22} color="var(--color-primary)" />
+          </div>
+          <div className="brand-title-group">
+            <h1 className="admin-page-title">Store Admin Hub</h1>
+            <span className="brand-subtitle">Maison Executive Control Center</span>
+          </div>
         </div>
-        <div className="topbar-actions">
-          {healthStatus && (
-            <span className={`status-pill ${healthStatus.status === 'healthy' ? 'healthy' : 'warning'}`}>
-              API: {healthStatus.mode}
-            </span>
-          )}
-          <span className="user-badge">{adminUser?.name || 'Administrator'}</span>
-          <button className="btn-logout" onClick={logoutAdmin} title="Logout">
-            <LogOut size={18} />
-          </button>
+
+        <div className="topbar-right">
+          {/* Quick Actions */}
+          <div className="topbar-quick-actions">
+            <Link to="/" target="_blank" className="topbar-action-btn" title="View Live Store">
+              <Globe size={16} />
+              <span className="action-label">Live Store</span>
+            </Link>
+          </div>
+
+          <div className="topbar-divider" />
+
+          {/* Account Dropdown */}
+          <div className="topbar-user-menu" ref={userMenuRef}>
+            <button 
+              className={`admin-account-trigger ${isUserMenuOpen ? 'active' : ''}`}
+              onClick={() => setIsUserMenuOpen(!isUserMenuOpen)}
+              aria-expanded={isUserMenuOpen}
+              aria-label="Admin Account Menu"
+            >
+              <div className="admin-avatar">
+                <User size={16} />
+              </div>
+              <div className="admin-account-info">
+                <span className="admin-name">{adminUser?.name || 'Maison Admin'}</span>
+                <span className="admin-role">Executive</span>
+              </div>
+              <ChevronDown size={14} className={`dropdown-chevron ${isUserMenuOpen ? 'open' : ''}`} />
+            </button>
+
+            <AnimatePresence>
+              {isUserMenuOpen && (
+                <motion.div 
+                  className="admin-dropdown-menu glass-panel"
+                  initial={{ opacity: 0, y: 8, scale: 0.98 }}
+                  animate={{ opacity: 1, y: 0, scale: 1 }}
+                  exit={{ opacity: 0, y: 6, scale: 0.98 }}
+                  transition={{ duration: 0.18, ease: 'easeOut' }}
+                >
+                  <div className="dropdown-user-header">
+                    <div className="dropdown-user-avatar">
+                      <User size={18} />
+                    </div>
+                    <div className="dropdown-user-meta">
+                      <p className="dropdown-user-name">{adminUser?.name || 'Maison Admin'}</p>
+                      <p className="dropdown-user-email">{adminUser?.email || 'admin@optiononestore.com'}</p>
+                    </div>
+                  </div>
+                  <div className="dropdown-divider" />
+                  <button 
+                    className="dropdown-item"
+                    onClick={() => {
+                      setActiveTab('settings');
+                      setIsUserMenuOpen(false);
+                    }}
+                  >
+                    <User size={16} />
+                    <span>My Profile</span>
+                  </button>
+                  <button 
+                    className="dropdown-item"
+                    onClick={() => {
+                      setActiveTab('overview');
+                      setIsUserMenuOpen(false);
+                    }}
+                  >
+                    <LayoutDashboard size={16} />
+                    <span>Dashboard</span>
+                  </button>
+                  <button 
+                    className="dropdown-item"
+                    onClick={() => {
+                      setActiveTab('settings');
+                      setIsUserMenuOpen(false);
+                    }}
+                  >
+                    <Settings size={16} />
+                    <span>Settings</span>
+                  </button>
+                  <div className="dropdown-divider" />
+                  <button 
+                    className="dropdown-item logout-item"
+                    onClick={() => {
+                      setIsUserMenuOpen(false);
+                      logoutAdmin();
+                    }}
+                  >
+                    <LogOut size={16} />
+                    <span>Sign Out</span>
+                  </button>
+                </motion.div>
+              )}
+            </AnimatePresence>
+          </div>
         </div>
       </header>
 
@@ -270,39 +438,130 @@ const Admin = () => {
 
         {/* Main Content Area */}
         <main className="admin-main-content">
+          {/* Dynamic World-Class Page Header */}
+          <div className="admin-page-header">
+            <div className="header-meta-row">
+              <div className="breadcrumb-trail">
+                <span className="breadcrumb-root">Maison Admin</span>
+                <span className="breadcrumb-sep">/</span>
+                <span className="breadcrumb-current">{tabMeta.breadcrumb}</span>
+              </div>
+              <div className="header-status-group">
+                <div className="live-status-chip">
+                  <span className="pulsing-dot" />
+                  <span>System Operational</span>
+                </div>
+                <span className="header-date">
+                  <Clock size={13} style={{ marginRight: '5px', verticalAlign: 'middle' }} />
+                  {new Date().toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric', year: 'numeric' })}
+                </span>
+              </div>
+            </div>
+
+            <div className="header-main-row">
+              <div className="header-title-block">
+                <h2 className="header-title">{tabMeta.title}</h2>
+                <p className="header-description">{tabMeta.description}</p>
+              </div>
+              <div className="header-quick-actions">
+                <button 
+                  className="btn-luxury-secondary"
+                  onClick={() => window.location.reload()}
+                  title="Refresh Dashboard Data"
+                >
+                  <RefreshCw size={14} />
+                  <span>Sync Refresh</span>
+                </button>
+                <button 
+                  className="btn-luxury-primary"
+                  onClick={() => setActiveTab('sync')}
+                >
+                  <Sparkles size={14} />
+                  <span>Import Product</span>
+                </button>
+              </div>
+            </div>
+          </div>
+
           {/* TAB 1: OVERVIEW */}
           {activeTab === 'overview' && (
             <div className="tab-pane animate-fade-in">
-              <h2 className="pane-title">Executive Dashboard</h2>
               <div className="metrics-grid">
-                <div className="metric-card glass-panel">
-                  <div className="metric-icon"><TrendingUp size={24} /></div>
-                  <div className="metric-info">
-                    <span className="label">Total Products</span>
-                    <h3 className="value">{allProducts.length}</h3>
+                <motion.div 
+                  className="metric-card primary-tint"
+                  initial={{ opacity: 0, y: 12 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.25, delay: 0.05 }}
+                >
+                  <div className="metric-header">
+                    <span className="metric-label">Total Products</span>
+                    <div className="metric-icon-badge"><TrendingUp size={18} /></div>
                   </div>
-                </div>
-                <div className="metric-card glass-panel">
-                  <div className="metric-icon"><FileText size={24} /></div>
-                  <div className="metric-info">
-                    <span className="label">Pending Drafts</span>
-                    <h3 className="value">{draftProducts.length}</h3>
+                  <div className="metric-body">
+                    <h3 className="metric-value">{allProducts.length}</h3>
+                    <div className="metric-footer">
+                      <span className="trend-badge positive">↑ Active Catalog</span>
+                      <span className="updated-meta">Updated live</span>
+                    </div>
                   </div>
-                </div>
-                <div className="metric-card glass-panel">
-                  <div className="metric-icon"><CheckCircle2 size={24} /></div>
-                  <div className="metric-info">
-                    <span className="label">Published Live</span>
-                    <h3 className="value">{publishedProducts.length}</h3>
+                </motion.div>
+
+                <motion.div 
+                  className="metric-card"
+                  initial={{ opacity: 0, y: 12 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.25, delay: 0.1 }}
+                >
+                  <div className="metric-header">
+                    <span className="metric-label">Pending Drafts</span>
+                    <div className="metric-icon-badge warning"><FileText size={18} /></div>
                   </div>
-                </div>
-                <div className="metric-card glass-panel">
-                  <div className="metric-icon"><Package size={24} /></div>
-                  <div className="metric-info">
-                    <span className="label">Total Orders</span>
-                    <h3 className="value">{orders.length}</h3>
+                  <div className="metric-body">
+                    <h3 className="metric-value">{draftProducts.length}</h3>
+                    <div className="metric-footer">
+                      <span className="trend-badge neutral">Ready for review</span>
+                      <span className="updated-meta">In queue</span>
+                    </div>
                   </div>
-                </div>
+                </motion.div>
+
+                <motion.div 
+                  className="metric-card"
+                  initial={{ opacity: 0, y: 12 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.25, delay: 0.15 }}
+                >
+                  <div className="metric-header">
+                    <span className="metric-label">Published Live</span>
+                    <div className="metric-icon-badge success"><CheckCircle2 size={18} /></div>
+                  </div>
+                  <div className="metric-body">
+                    <h3 className="metric-value">{publishedProducts.length}</h3>
+                    <div className="metric-footer">
+                      <span className="trend-badge positive">Live on store</span>
+                      <span className="updated-meta">Public items</span>
+                    </div>
+                  </div>
+                </motion.div>
+
+                <motion.div 
+                  className="metric-card"
+                  initial={{ opacity: 0, y: 12 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.25, delay: 0.2 }}
+                >
+                  <div className="metric-header">
+                    <span className="metric-label">Total Orders</span>
+                    <div className="metric-icon-badge accent"><Package size={18} /></div>
+                  </div>
+                  <div className="metric-body">
+                    <h3 className="metric-value">{orders.length}</h3>
+                    <div className="metric-footer">
+                      <span className="trend-badge positive">Customer orders</span>
+                      <span className="updated-meta">Tracked live</span>
+                    </div>
+                  </div>
+                </motion.div>
               </div>
 
               <div className="dashboard-sections-grid" style={{ marginTop: '2rem' }}>

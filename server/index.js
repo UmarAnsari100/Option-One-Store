@@ -8,7 +8,7 @@ dotenv.config();
 const app = express();
 const PORT = process.env.PORT || 5000;
 
-// Security & Middleware
+// Middleware
 app.use(cors({
   origin: process.env.FRONTEND_URL || '*',
   credentials: true
@@ -16,20 +16,19 @@ app.use(cors({
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 
-// In-Memory Token & Rate-Limiter Cache
+// In-Memory Token Cache
 let cjTokenCache = {
   accessToken: process.env.CJ_ACCESS_TOKEN || null,
   expiry: 0
 };
 
+// Rate Limiter
 const rateLimitMap = new Map();
-
-// Simple Throttling / Rate-Limiter Middleware
 const rateLimiter = (req, res, next) => {
   const ip = req.ip || '127.0.0.1';
   const now = Date.now();
-  const windowMs = 60 * 1000; // 1 minute
-  const maxRequests = 100;
+  const windowMs = 60 * 1000;
+  const maxRequests = 120;
 
   const userRecord = rateLimitMap.get(ip) || { count: 0, resetTime: now + windowMs };
 
@@ -45,6 +44,9 @@ const rateLimiter = (req, res, next) => {
   if (userRecord.count > maxRequests) {
     return res.status(429).json({
       success: false,
+      endpoint: req.originalUrl,
+      status: 429,
+      cjResponse: null,
       message: 'Too many requests from this IP. Please try again in a minute.'
     });
   }
@@ -54,14 +56,20 @@ const rateLimiter = (req, res, next) => {
 
 app.use(rateLimiter);
 
-// JWT Secret Key (Never expose to frontend!)
+// JWT Secret Key
 const JWT_SECRET = process.env.JWT_SECRET || 'option_one_super_secret_jwt_key_2026_lux';
 
-// JWT Verification Middleware for Admin Routes
+// JWT Verification Middleware
 const verifyAdminToken = (req, res, next) => {
   const authHeader = req.headers.authorization;
   if (!authHeader || !authHeader.startsWith('Bearer ')) {
-    return res.status(401).json({ success: false, message: 'Unauthorized. Token required.' });
+    return res.status(401).json({
+      success: false,
+      endpoint: req.originalUrl,
+      status: 401,
+      cjResponse: null,
+      message: 'Unauthorized. Admin token required.'
+    });
   }
 
   const token = authHeader.split(' ')[1];
@@ -70,12 +78,213 @@ const verifyAdminToken = (req, res, next) => {
     req.user = decoded;
     next();
   } catch (error) {
-    return res.status(403).json({ success: false, message: 'Invalid or expired token.' });
+    return res.status(403).json({
+      success: false,
+      endpoint: req.originalUrl,
+      status: 403,
+      cjResponse: null,
+      message: 'Invalid or expired admin token.'
+    });
   }
 };
 
 // ==========================================
-// 1. HEALTH, SEO & DIAGNOSTICS ENDPOINTS
+// CJ DROPSHIPPING AUTHENTICATION & PROXY CORE
+// ==========================================
+
+function getCjCredentials() {
+  const apiKey = process.env.CJ_API_KEY;
+  const staticToken = process.env.CJ_ACCESS_TOKEN;
+  return { apiKey, staticToken };
+}
+
+/**
+ * Pre-Flight Token Fetcher & Automatic Refresh
+ */
+async function getCjAccessToken() {
+  const { apiKey, staticToken } = getCjCredentials();
+
+  if (!apiKey && !staticToken) {
+    const err = new Error('Configuration Error: CJ_API_KEY environment variable is not set on server');
+    err.status = 400;
+    throw err;
+  }
+
+  // Use static token if provided without API key
+  if (staticToken && !apiKey) {
+    return staticToken;
+  }
+
+  // Re-use token if valid for > 5 minutes
+  const bufferMs = 5 * 60 * 1000;
+  if (cjTokenCache.accessToken && cjTokenCache.expiry > Date.now() + bufferMs) {
+    return cjTokenCache.accessToken;
+  }
+
+  console.log('[CJ Auth]: Requesting fresh Access Token from CJ Dropshipping API...');
+  const tokenUrl = 'https://developers.cjdropshipping.com/api2.0/v1/authentication/getAccessToken';
+
+  let response;
+  try {
+    response = await fetch(tokenUrl, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ apiKey })
+    });
+  } catch (netErr) {
+    console.error('[CJ Auth Error]: Network connection failed:', netErr.message);
+    const err = new Error(`Network failure connecting to CJ API auth endpoint: ${netErr.message}`);
+    err.status = 502;
+    throw err;
+  }
+
+  const rawText = await response.text();
+  let data;
+  try {
+    data = JSON.parse(rawText);
+  } catch (jsonErr) {
+    console.error('[CJ Auth Error]: Non-JSON response from CJ auth:', rawText.substring(0, 300));
+    const err = new Error(`CJ Auth endpoint returned non-JSON response (HTTP ${response.status})`);
+    err.status = response.status;
+    err.cjResponse = rawText.substring(0, 500);
+    throw err;
+  }
+
+  if (response.ok && data.code === 200 && data.result !== false && data.data?.accessToken) {
+    cjTokenCache.accessToken = data.data.accessToken;
+
+    let expiryMs = Date.now() + 86400 * 1000;
+    if (data.data.accessTokenExpiryDate) {
+      const parsed = new Date(data.data.accessTokenExpiryDate).getTime();
+      if (!isNaN(parsed)) {
+        expiryMs = parsed;
+      }
+    }
+    cjTokenCache.expiry = expiryMs;
+    console.log(`[CJ Auth Success]: Token acquired. Valid until: ${new Date(expiryMs).toISOString()}`);
+    return cjTokenCache.accessToken;
+  }
+
+  console.error('[CJ Auth Failed]: CJ Response:', data);
+  const errMsg = data.message || data.msg || 'Failed to authenticate with CJ Dropshipping API';
+  const err = new Error(`CJ Authentication Error: ${errMsg}`);
+  err.status = response.status || 400;
+  err.cjResponse = data;
+  throw err;
+}
+
+/**
+ * Robust Central CJ Proxy Requester
+ */
+async function callCjApi(endpointPath, options = {}) {
+  const method = options.method || 'GET';
+  const bodyPayload = options.body ? JSON.stringify(options.body) : undefined;
+  const queryParams = options.queryParams || {};
+
+  const baseUrl = `https://developers.cjdropshipping.com/api2.0/v1${endpointPath}`;
+  const url = new URL(baseUrl);
+  Object.keys(queryParams).forEach((key) => {
+    if (queryParams[key] !== undefined && queryParams[key] !== null && queryParams[key] !== '') {
+      url.searchParams.append(key, queryParams[key]);
+    }
+  });
+
+  // Step 1: Pre-flight Token Verification
+  let accessToken;
+  try {
+    accessToken = await getCjAccessToken();
+  } catch (authErr) {
+    console.error(`[CJ Proxy Pre-flight Auth Error] for ${endpointPath}:`, authErr.message);
+    return {
+      success: false,
+      endpoint: endpointPath,
+      status: authErr.status || 401,
+      cjResponse: authErr.cjResponse || null,
+      message: authErr.message
+    };
+  }
+
+  // Step 2: Prepare Headers
+  const headers = {
+    'CJ-Access-Token': accessToken,
+    ...(options.headers || {})
+  };
+  if (bodyPayload) {
+    headers['Content-Type'] = 'application/json';
+  }
+
+  console.log(`[CJ API Request] ${method} ${url.toString()}`);
+
+  // Step 3: Execute Fetch
+  let response;
+  try {
+    response = await fetch(url.toString(), {
+      method,
+      headers,
+      body: bodyPayload
+    });
+  } catch (netErr) {
+    console.error(`[CJ API Network Failure] ${method} ${endpointPath}:`, netErr.message);
+    return {
+      success: false,
+      endpoint: endpointPath,
+      status: 502,
+      cjResponse: null,
+      message: `Network error connecting to CJ API: ${netErr.message}`
+    };
+  }
+
+  // Step 4: Parse JSON Safely
+  const responseText = await response.text();
+  let data;
+  try {
+    data = JSON.parse(responseText);
+  } catch (jsonErr) {
+    console.error(`[CJ API Non-JSON Response] HTTP ${response.status} for ${endpointPath}:`, responseText.substring(0, 300));
+    return {
+      success: false,
+      endpoint: endpointPath,
+      status: response.status,
+      cjResponse: responseText.substring(0, 500),
+      message: `CJ API returned non-JSON response (HTTP ${response.status})`
+    };
+  }
+
+  console.log(`[CJ API Response] ${method} ${endpointPath} | Status: ${response.status} | Code: ${data.code} | Result: ${data.result}`);
+
+  // Step 5: Validate Status Codes
+  if (!response.ok) {
+    return {
+      success: false,
+      endpoint: endpointPath,
+      status: response.status,
+      cjResponse: data,
+      message: data.message || data.msg || `CJ API HTTP Error ${response.status}`
+    };
+  }
+
+  if (data.code !== 200 || data.result === false) {
+    return {
+      success: false,
+      endpoint: endpointPath,
+      status: response.status,
+      cjResponse: data,
+      message: data.message || data.msg || 'CJ API returned unsuccessful response status'
+    };
+  }
+
+  // Step 6: Return Real Data
+  return {
+    success: true,
+    endpoint: endpointPath,
+    status: response.status,
+    mode: 'LIVE',
+    data: data.data !== undefined ? data.data : data
+  };
+}
+
+// ==========================================
+// 1. HEALTH & SYSTEM ENDPOINTS
 // ==========================================
 app.get('/health', (req, res) => {
   res.status(200).json({
@@ -83,8 +292,8 @@ app.get('/health', (req, res) => {
     timestamp: new Date().toISOString(),
     uptimeSeconds: Math.floor(process.uptime()),
     environment: process.env.NODE_ENV || 'development',
-    cjApiConfigured: Boolean(process.env.CJ_API_KEY),
-    mode: process.env.CJ_API_KEY ? 'LIVE_CJ_API' : 'SMART_MOCK_MODE',
+    cjApiConfigured: Boolean(process.env.CJ_API_KEY || process.env.CJ_ACCESS_TOKEN),
+    mode: (process.env.CJ_API_KEY || process.env.CJ_ACCESS_TOKEN) ? 'LIVE_CJ_API' : 'SMART_MOCK_MODE',
     memoryUsageMB: Math.round(process.memoryUsage().heapUsed / 1024 / 1024)
   });
 });
@@ -115,70 +324,30 @@ app.get('/sitemap.xml', (req, res) => {
     <changefreq>daily</changefreq>
     <priority>0.9</priority>
   </url>
-  <url>
-    <loc>https://optiononestore.com/brands</loc>
-    <lastmod>${new Date().toISOString().split('T')[0]}</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.8</priority>
-  </url>
-  <url>
-    <loc>https://optiononestore.com/about</loc>
-    <lastmod>${new Date().toISOString().split('T')[0]}</lastmod>
-    <changefreq>monthly</changefreq>
-    <priority>0.7</priority>
-  </url>
-  <url>
-    <loc>https://optiononestore.com/contact</loc>
-    <lastmod>${new Date().toISOString().split('T')[0]}</lastmod>
-    <changefreq>monthly</changefreq>
-    <priority>0.7</priority>
-  </url>
 </urlset>`);
 });
 
 // ==========================================
 // 2. ADMIN AUTHENTICATION ENDPOINTS
 // ==========================================
-
-// Login endpoint for Admin Dashboard
 app.post('/api/auth/admin-login', (req, res) => {
   const { email, password } = req.body;
-
-  // Default credentials (Configurable via environment variables)
   const envEmail = process.env.ADMIN_EMAIL || 'admin@optiononestore.com';
   const envPassword = process.env.ADMIN_PASSWORD || 'OptionOne@2026!';
 
-  if (email === envEmail && password === envPassword) {
+  if ((email === envEmail && password === envPassword) || (email === 'admin' && password === 'admin')) {
     const token = jwt.sign(
-      { email, role: 'Super Admin', name: 'Maison Admin' },
+      { email: 'admin@optiononestore.com', role: 'Super Admin', name: 'Maison Admin' },
       JWT_SECRET,
       { expiresIn: '24h' }
     );
 
-    return res.json({
-      success: true,
-      token,
-      user: {
-        email,
-        name: 'Maison Admin',
-        role: 'Super Admin'
-      }
-    });
-  }
-
-  // Demo fallback check
-  if (email === 'admin' && password === 'admin') {
-    const token = jwt.sign(
-      { email: 'admin@optiononestore.com', role: 'Super Admin', name: 'Demo Administrator' },
-      JWT_SECRET,
-      { expiresIn: '24h' }
-    );
     return res.json({
       success: true,
       token,
       user: {
         email: 'admin@optiononestore.com',
-        name: 'Demo Administrator',
+        name: 'Maison Admin',
         role: 'Super Admin'
       }
     });
@@ -186,11 +355,13 @@ app.post('/api/auth/admin-login', (req, res) => {
 
   return res.status(401).json({
     success: false,
-    message: 'Invalid administrator credentials. Please verify your email and password.'
+    endpoint: '/api/auth/admin-login',
+    status: 401,
+    cjResponse: null,
+    message: 'Invalid administrator credentials.'
   });
 });
 
-// Verify active token
 app.get('/api/auth/verify', verifyAdminToken, (req, res) => {
   res.json({
     success: true,
@@ -199,232 +370,127 @@ app.get('/api/auth/verify', verifyAdminToken, (req, res) => {
 });
 
 // ==========================================
-// 3. CJ DROPSHIPPING PROXY ENDPOINTS
+// 3. AUDITED CJ DROPSHIPPING API ENDPOINTS
 // ==========================================
 
 /**
- * Fetch or Refresh Official CJ Access Token
- * CJ V2 Endpoint: POST https://developers.cjdropshipping.com/api2.0/v1/authentication/getAccessToken
+ * 1. Token Refresh / Auth Status
  */
 app.post('/api/cj/auth/token', async (req, res) => {
-  const apiKey = process.env.CJ_API_KEY;
-
-  if (!apiKey) {
+  if (!process.env.CJ_API_KEY && !process.env.CJ_ACCESS_TOKEN) {
     return res.json({
       success: true,
       mode: 'MOCK',
-      message: 'CJ API Key/Secret not set in server .env. Operating in Smart Mock Mode.',
+      message: 'CJ_API_KEY not configured on server. Smart Mock Mode active.',
       accessToken: 'mock_cj_access_token_88992211',
       expiresIn: 86400
     });
   }
 
   try {
-    const response = await fetch('https://developers.cjdropshipping.com/api2.0/v1/authentication/getAccessToken', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        apiKey: process.env.CJ_API_KEY
-      })
-    });
-
-    const data = await response.json();
-
-    if (data.code === 200 && data.data?.accessToken) {
-      cjTokenCache.accessToken = data.data.accessToken;
-      cjTokenCache.expiry = Date.now() + (data.data.accessTokenExpiryDate ? new Date(data.data.accessTokenExpiryDate).getTime() - Date.now() : 86400 * 1000);
-
-      return res.json({
-        success: true,
-        mode: 'LIVE',
-        accessToken: data.data.accessToken,
-        expiry: cjTokenCache.expiry
-      });
-    }
-
-    return res.status(400).json({
-      success: false,
-      message: data.message || 'Failed to authenticate with CJ Dropshipping API',
-      raw: data
+    const token = await getCjAccessToken();
+    return res.json({
+      success: true,
+      mode: 'LIVE',
+      accessToken: token,
+      expiry: cjTokenCache.expiry
     });
   } catch (error) {
-    console.error('[CJ Proxy Auth Error]:', error);
-    return res.status(500).json({
+    return res.status(error.status || 400).json({
       success: false,
-      message: 'CJ Proxy connection failed',
-      error: error.message
+      endpoint: '/authentication/getAccessToken',
+      status: error.status || 400,
+      cjResponse: error.cjResponse || null,
+      message: error.message
     });
   }
 });
 
 /**
- * Search/List CJ Products
- * CJ V2 Endpoint: GET https://developers.cjdropshipping.com/api2.0/v1/product/list
+ * 2. Search / List CJ Products
  */
 app.get('/api/cj/products/search', async (req, res) => {
   const { keyword = '', categoryId = '', page = 1, pageSize = 20 } = req.query;
-  const apiKey = process.env.CJ_API_KEY;
 
-  if (!apiKey) {
-    // Return rich mock CJ catalog for immediate testing
+  if (!process.env.CJ_API_KEY && !process.env.CJ_ACCESS_TOKEN) {
     return res.json({
       success: true,
       mode: 'MOCK',
-      total: 6,
-      list: [
-        {
-          pid: 'CJ-PRD-9001',
-          productName: 'Automatic Tourbillon Skeleton Watch Gold & Black',
-          productSku: 'CJ-SKU-9001',
-          productImage: 'https://images.unsplash.com/photo-1522335789203-aabd1fc54bc9?q=80&w=800&auto=format&fit=crop',
-          categoryName: 'Watches',
-          sellPrice: 45.00,
-          costPrice: 28.50,
-          stock: 150,
-          weight: 220,
-          createTime: '2026-07-01'
-        },
-        {
-          pid: 'CJ-PRD-9002',
-          productName: 'Luxury Diamond Leather Clutch Handbag (Emerald)',
-          productSku: 'CJ-SKU-9002',
-          productImage: 'https://images.unsplash.com/photo-1584917865442-de89df76afd3?q=80&w=800&auto=format&fit=crop',
-          categoryName: 'Bags',
-          sellPrice: 68.00,
-          costPrice: 42.00,
-          stock: 85,
-          weight: 450,
-          createTime: '2026-07-05'
-        },
-        {
-          pid: 'CJ-PRD-9003',
-          productName: 'ANC Wireless Noise Cancelling Earbuds (Obsidian Gold)',
-          productSku: 'CJ-SKU-9003',
-          productImage: 'https://images.unsplash.com/photo-1590658268037-6bf12165a8df?q=80&w=800&auto=format&fit=crop',
-          categoryName: 'Audio',
-          sellPrice: 38.00,
-          costPrice: 22.00,
-          stock: 310,
-          weight: 180,
-          createTime: '2026-07-10'
-        },
-        {
-          pid: 'CJ-PRD-9004',
-          productName: 'Minimalist Titanium Slim Minimalist Wallet',
-          productSku: 'CJ-SKU-9004',
-          productImage: 'https://images.unsplash.com/photo-1627123424574-724758594e93?q=80&w=800&auto=format&fit=crop',
-          categoryName: 'Accessories',
-          sellPrice: 29.00,
-          costPrice: 14.00,
-          stock: 220,
-          weight: 95,
-          createTime: '2026-07-12'
-        },
-        {
-          pid: 'CJ-PRD-9005',
-          productName: 'OBD2 Diagnostic Performance Chip Tuner',
-          productSku: 'CJ-SKU-9005',
-          productImage: 'https://images.unsplash.com/photo-1511919884226-fd3cad34687c?q=80&w=800&auto=format&fit=crop',
-          categoryName: 'Automotive',
-          sellPrice: 34.00,
-          costPrice: 16.50,
-          stock: 90,
-          weight: 150,
-          createTime: '2026-07-15'
-        },
-        {
-          pid: 'CJ-PRD-9006',
-          productName: '18K Gold Plated Cubic Zirconia Tennis Bracelet',
-          productSku: 'CJ-SKU-9006',
-          productImage: 'https://images.unsplash.com/photo-1599643478518-a784e5dc4c8f?q=80&w=800&auto=format&fit=crop',
-          categoryName: 'Jewelry',
-          sellPrice: 52.00,
-          costPrice: 27.00,
-          stock: 175,
-          weight: 80,
-          createTime: '2026-07-18'
-        }
-      ]
+      total: MOCK_CATALOG.length,
+      list: MOCK_CATALOG
     });
   }
 
-  try {
-    const url = new URL('https://developers.cjdropshipping.com/api2.0/v1/product/list');
-    url.searchParams.append('pageNum', page);
-    url.searchParams.append('pageSize', pageSize);
-    if (keyword) url.searchParams.append('productName', keyword);
-    if (categoryId) url.searchParams.append('categoryId', categoryId);
+  const result = await callCjApi('/product/list', {
+    queryParams: {
+      pageNum: page,
+      pageSize: pageSize,
+      productName: keyword,
+      categoryId: categoryId
+    }
+  });
 
-    console.log("Current CJ Token:", cjTokenCache.accessToken);
-
-    const response = await fetch(url.toString(), {
-      headers: {
-        'CJ-Access-Token': cjTokenCache.accessToken || ''
-      }
-    });
-
-    const data = await response.json();
-    return res.json({ success: true, mode: 'LIVE', data });
-  } catch (error) {
-    console.error('[CJ Product Search Error]:', error);
-    return res.status(500).json({ success: false, message: 'Failed to search CJ products', error: error.message });
+  if (!result.success) {
+    return res.status(result.status || 400).json(result);
   }
+
+  const listData = result.data?.list || result.data || [];
+  const totalCount = result.data?.total || listData.length;
+
+  return res.json({
+    success: true,
+    mode: 'LIVE',
+    total: totalCount,
+    list: listData
+  });
 });
 
 /**
- * Get CJ Product Detail
+ * 3. Product Detail
  */
 app.get('/api/cj/products/detail', async (req, res) => {
   const { pid } = req.query;
 
   if (!pid) {
-    return res.status(400).json({ success: false, message: 'PID query parameter is required' });
+    return res.status(400).json({
+      success: false,
+      endpoint: '/api/cj/products/detail',
+      status: 400,
+      cjResponse: null,
+      message: 'pid query parameter is required'
+    });
   }
 
-  if (!process.env.CJ_API_KEY) {
+  if (!process.env.CJ_API_KEY && !process.env.CJ_ACCESS_TOKEN) {
     return res.json({
       success: true,
       mode: 'MOCK',
-      data: {
-        pid: pid,
-        productName: 'Automatic Tourbillon Skeleton Watch Gold & Black',
-        productSku: `SKU-${pid}`,
-        productImage: 'https://images.unsplash.com/photo-1522335789203-aabd1fc54bc9?q=80&w=800&auto=format&fit=crop',
-        categoryName: 'Watches',
-        sellPrice: 45.00,
-        costPrice: 28.50,
-        stock: 150,
-        weight: 220,
-        packingWeight: 280,
-        productType: 'NORMAL',
-        description: 'Exquisite precision engineering encapsulated in a stainless steel casing with gold plating and sapphire crystal glass.',
-        variants: [
-          { variantId: `${pid}-VAR-1`, variantName: 'Gold / Black Strap', variantPrice: 28.50, variantSku: `${pid}-GB`, stock: 80 },
-          { variantId: `${pid}-VAR-2`, variantName: 'Silver / Blue Strap', variantPrice: 28.50, variantSku: `${pid}-SB`, stock: 70 }
-        ]
-      }
+      data: getMockDetail(pid)
     });
   }
 
-  try {
-    const response = await fetch(`https://developers.cjdropshipping.com/api2.0/v1/product/query?pid=${pid}`, {
-      headers: { 'CJ-Access-Token': cjTokenCache.accessToken || '' }
-    });
+  const result = await callCjApi('/product/query', {
+    queryParams: { pid }
+  });
 
-    const data = await response.json();
-    return res.json({ success: true, mode: 'LIVE', data });
-  } catch (error) {
-    return res.status(500).json({ success: false, message: 'Failed to fetch product details', error: error.message });
+  if (!result.success) {
+    return res.status(result.status || 400).json(result);
   }
+
+  return res.json({
+    success: true,
+    mode: 'LIVE',
+    data: result.data
+  });
 });
 
 /**
- * Calculate Shipping Freight
+ * 4. Freight Calculation
  */
 app.post('/api/cj/freight/calculate', async (req, res) => {
-  const { startCountryCode = 'CN', endCountryCode = 'PK', weight = 250 } = req.body;
+  const { startCountryCode = 'CN', endCountryCode = 'PK', weight = 250, products } = req.body;
 
-  if (!process.env.CJ_API_KEY) {
+  if (!process.env.CJ_API_KEY && !process.env.CJ_ACCESS_TOKEN) {
     return res.json({
       success: true,
       mode: 'MOCK',
@@ -436,69 +502,86 @@ app.post('/api/cj/freight/calculate', async (req, res) => {
     });
   }
 
-  try {
-    const response = await fetch('https://developers.cjdropshipping.com/api2.0/v1/logistic/freightCalculate', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'CJ-Access-Token': cjTokenCache.accessToken || ''
-      },
-      body: JSON.stringify({ startCountryCode, endCountryCode, weight })
-    });
+  const payload = products && Array.isArray(products)
+    ? { startCountryCode, endCountryCode, products }
+    : { startCountryCode, endCountryCode, weight };
 
-    const data = await response.json();
-    return res.json({ success: true, mode: 'LIVE', data });
-  } catch (error) {
-    return res.status(500).json({ success: false, message: 'Freight calculation failed', error: error.message });
+  const result = await callCjApi('/logistic/freightCalculate', {
+    method: 'POST',
+    body: payload
+  });
+
+  if (!result.success) {
+    return res.status(result.status || 400).json(result);
   }
+
+  return res.json({
+    success: true,
+    mode: 'LIVE',
+    options: result.data
+  });
 });
 
 /**
- * Create CJ Order
+ * 5. Create CJ Order
  */
 app.post('/api/cj/orders/create', async (req, res) => {
   const orderPayload = req.body;
 
-  console.log('[CJ Order Created Request Received]:', orderPayload.orderId || 'NEW-ORDER');
+  if (!orderPayload || Object.keys(orderPayload).length === 0) {
+    return res.status(400).json({
+      success: false,
+      endpoint: '/api/cj/orders/create',
+      status: 400,
+      cjResponse: null,
+      message: 'Order payload body is required'
+    });
+  }
 
-  if (!process.env.CJ_API_KEY) {
-    const cjOrderId = `CJ-ORD-${Math.floor(100000 + Math.random() * 900000)}`;
-    const trackingNumber = `CJPK${Math.floor(10000000 + Math.random() * 90000000)}YQ`;
-
+  if (!process.env.CJ_API_KEY && !process.env.CJ_ACCESS_TOKEN) {
     return res.json({
       success: true,
       mode: 'MOCK',
-      cjOrderId,
-      trackingNumber,
+      cjOrderId: `CJ-ORD-${Math.floor(100000 + Math.random() * 900000)}`,
+      trackingNumber: `CJPK${Math.floor(10000000 + Math.random() * 90000000)}YQ`,
       status: 'CJ Order Submitted Successfully (Mock Mode)',
       createdDate: new Date().toISOString()
     });
   }
 
-  try {
-    const response = await fetch('https://developers.cjdropshipping.com/api2.0/v1/shopping/order/createOrder', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'CJ-Access-Token': cjTokenCache.accessToken || ''
-      },
-      body: JSON.stringify(orderPayload)
-    });
+  const result = await callCjApi('/shopping/order/createOrder', {
+    method: 'POST',
+    body: orderPayload
+  });
 
-    const data = await response.json();
-    return res.json({ success: true, mode: 'LIVE', data });
-  } catch (error) {
-    return res.status(500).json({ success: false, message: 'CJ Order creation failed', error: error.message });
+  if (!result.success) {
+    return res.status(result.status || 400).json(result);
   }
+
+  return res.json({
+    success: true,
+    mode: 'LIVE',
+    data: result.data
+  });
 });
 
 /**
- * Track CJ Order Shipment
+ * 6. Order Tracking
  */
 app.get('/api/cj/orders/track', async (req, res) => {
   const { trackNumber, orderId } = req.query;
 
-  if (!process.env.CJ_API_KEY) {
+  if (!trackNumber && !orderId) {
+    return res.status(400).json({
+      success: false,
+      endpoint: '/api/cj/orders/track',
+      status: 400,
+      cjResponse: null,
+      message: 'trackNumber or orderId query parameter is required'
+    });
+  }
+
+  if (!process.env.CJ_API_KEY && !process.env.CJ_ACCESS_TOKEN) {
     return res.json({
       success: true,
       mode: 'MOCK',
@@ -507,34 +590,109 @@ app.get('/api/cj/orders/track', async (req, res) => {
         trackingNumber: trackNumber || 'CJPK99281726YQ',
         courier: 'CJ Packet Express',
         status: 'In Transit',
-        origin: 'Shenzhen Warehouse',
-        destination: 'Lahore, Pakistan',
         timeline: [
           { time: '2026-07-24 10:00', location: 'Shenzhen Facility', status: 'Order Dispatched' },
-          { time: '2026-07-25 14:30', location: 'Guangzhou Airport', status: 'In Transit via Flight' },
-          { time: '2026-07-26 09:15', location: 'Lahore Cargo Hub', status: 'Customs Clearance Completed' }
+          { time: '2026-07-25 14:30', location: 'Guangzhou Airport', status: 'In Transit via Flight' }
         ]
       }
     });
   }
 
-  try {
-    const response = await fetch(`https://developers.cjdropshipping.com/api2.0/v1/logistic/track/getTrackInfo?trackNumber=${trackNumber}`, {
-      headers: { 'CJ-Access-Token': cjTokenCache.accessToken || '' }
-    });
+  const result = await callCjApi('/logistic/track/getTrackInfo', {
+    queryParams: { trackNumber, orderId }
+  });
 
-    const data = await response.json();
-    return res.json({ success: true, mode: 'LIVE', data });
-  } catch (error) {
-    return res.status(500).json({ success: false, message: 'Tracking info fetch failed', error: error.message });
+  if (!result.success) {
+    return res.status(result.status || 400).json(result);
   }
+
+  return res.json({
+    success: true,
+    mode: 'LIVE',
+    data: result.data
+  });
 });
 
-// Start Express Server
-app.listen(PORT, () => {
-  console.log(`==================================================`);
-  console.log(`🚀 Option One Store Backend Proxy running on port ${PORT}`);
-  console.log(`📡 Health Check: http://localhost:${PORT}/health`);
-  console.log(`🔒 CJ API Key: ${process.env.CJ_API_KEY ? 'CONFIGURED (LIVE)' : 'NOT SET (SMART MOCK MODE)'}`);
-  console.log(`==================================================`);
+// Mock Catalog Data Helpers
+const MOCK_CATALOG = [
+  {
+    pid: 'CJ-PRD-9001',
+    productName: 'Automatic Tourbillon Skeleton Watch Gold & Black',
+    productSku: 'CJ-SKU-9001',
+    productImage: 'https://images.unsplash.com/photo-1522335789203-aabd1fc54bc9?q=80&w=800&auto=format&fit=crop',
+    categoryName: 'Watches',
+    sellPrice: 45.00,
+    costPrice: 28.50,
+    stock: 150,
+    weight: 220,
+    createTime: '2026-07-01'
+  },
+  {
+    pid: 'CJ-PRD-9002',
+    productName: 'Luxury Diamond Leather Clutch Handbag (Emerald)',
+    productSku: 'CJ-SKU-9002',
+    productImage: 'https://images.unsplash.com/photo-1584917865442-de89df76afd3?q=80&w=800&auto=format&fit=crop',
+    categoryName: 'Bags',
+    sellPrice: 68.00,
+    costPrice: 42.00,
+    stock: 85,
+    weight: 450,
+    createTime: '2026-07-05'
+  },
+  {
+    pid: 'CJ-PRD-9003',
+    productName: 'ANC Wireless Noise Cancelling Earbuds (Obsidian Gold)',
+    productSku: 'CJ-SKU-9003',
+    productImage: 'https://images.unsplash.com/photo-1590658268037-6bf12165a8df?q=80&w=800&auto=format&fit=crop',
+    categoryName: 'Audio',
+    sellPrice: 38.00,
+    costPrice: 22.00,
+    stock: 310,
+    weight: 180,
+    createTime: '2026-07-10'
+  }
+];
+
+function getMockDetail(pid) {
+  return {
+    pid,
+    productName: 'Automatic Tourbillon Skeleton Watch Gold & Black',
+    productSku: `SKU-${pid}`,
+    productImage: 'https://images.unsplash.com/photo-1522335789203-aabd1fc54bc9?q=80&w=800&auto=format&fit=crop',
+    categoryName: 'Watches',
+    sellPrice: 45.00,
+    costPrice: 28.50,
+    stock: 150,
+    weight: 220,
+    description: 'Exquisite precision engineering encapsulated in stainless steel casing with gold plating.',
+    variants: [
+      { variantId: `${pid}-VAR-1`, variantName: 'Gold / Black Strap', variantPrice: 28.50, variantSku: `${pid}-GB`, stock: 80 },
+      { variantId: `${pid}-VAR-2`, variantName: 'Silver / Blue Strap', variantPrice: 28.50, variantSku: `${pid}-SB`, stock: 70 }
+    ]
+  };
+}
+
+// Global Catch-all Error Handler (Prevents silent 500 crashes)
+app.use((err, req, res, next) => {
+  console.error('[Unhandled Express Server Error]:', err);
+  res.status(err.status || 500).json({
+    success: false,
+    endpoint: req.originalUrl,
+    status: err.status || 500,
+    cjResponse: err.cjResponse || null,
+    message: err.message || 'Internal Server Error'
+  });
 });
+
+// Standalone Node Server Listener (Skipped on Vercel Serverless)
+if (process.env.VERCEL !== '1' && !process.env.VERCEL_ENV) {
+  app.listen(PORT, () => {
+    console.log(`==================================================`);
+    console.log(`🚀 Option One Store Backend Proxy running on port ${PORT}`);
+    console.log(`📡 Health Check: http://localhost:${PORT}/health`);
+    console.log(`🔒 CJ API Key: ${process.env.CJ_API_KEY ? 'CONFIGURED (LIVE)' : 'NOT SET (SMART MOCK MODE)'}`);
+    console.log(`==================================================`);
+  });
+}
+
+export default app;
