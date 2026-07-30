@@ -32,8 +32,7 @@ const CursorGlow = () => {
   return (
     <motion.div 
       className="luxury-cursor-glow" 
-      style={{ x: glowX, y: glowY }}
-      pointerEvents="none"
+      style={{ x: glowX, y: glowY, pointerEvents: 'none' }}
     />
   );
 };

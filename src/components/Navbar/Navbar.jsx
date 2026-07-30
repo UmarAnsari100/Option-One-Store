@@ -38,6 +38,13 @@ const Navbar = () => {
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
+  // Automatically close Search Overlay and Mobile Menu on Route Navigation
+  useEffect(() => {
+    setIsSearchOpen(false);
+    setIsMobileMenuOpen(false);
+    document.body.style.overflow = '';
+  }, [location.pathname]);
+
   // Lock body scroll when mobile menu or search overlay is open
   useEffect(() => {
     if (isMobileMenuOpen || isSearchOpen) {

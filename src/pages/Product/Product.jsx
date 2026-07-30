@@ -206,6 +206,17 @@ const Product = () => {
     };
   }, [id, products, allProducts, location.state]);
 
+  // Cleanup overlays and body scroll locks when leaving Product Page
+  useEffect(() => {
+    return () => {
+      setIsLightboxOpen(false);
+      setIs360Open(false);
+      setShowStickyBar(false);
+      setMagnifierStyle({ display: 'none', pointerEvents: 'none' });
+      document.body.style.overflow = '';
+    };
+  }, [id, location.pathname]);
+
   // Keyboard navigation inside image gallery
   useEffect(() => {
     const handleKeyDown = (e) => {
@@ -298,12 +309,13 @@ const Product = () => {
       backgroundImage: `url(${activeImage})`,
       backgroundRepeat: 'no-repeat',
       backgroundSize: `${width * zoomLevel}px ${height * zoomLevel}px`,
-      backgroundPosition: `-${x * zoomLevel - magnifierWidth / 2}px -${y * zoomLevel - magnifierHeight / 2}px`
+      backgroundPosition: `-${x * zoomLevel - magnifierWidth / 2}px -${y * zoomLevel - magnifierHeight / 2}px`,
+      pointerEvents: 'none'
     });
   };
 
   const handleMouseLeave = () => {
-    setMagnifierStyle({ display: 'none' });
+    setMagnifierStyle({ display: 'none', pointerEvents: 'none' });
   };
 
   // Touch Swipe Handlers for Mobile swipeable gallery
