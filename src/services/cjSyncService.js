@@ -88,7 +88,7 @@ export function normalizeCjItem(cjItem) {
     });
   }
 
-  // 5. Extract Stock / Inventory (Calculate from variant sum if top-level stock missing)
+  // 5. Extract Stock / Inventory
   const rawStock = cjItem.stock ?? cjItem.inventory ?? cjItem.quantity ?? cjItem.productStock ?? cjItem.subNum ?? cjItem.totalStock;
   let stock = 0;
 
@@ -97,7 +97,6 @@ export function normalizeCjItem(cjItem) {
   } else if (variantStockSum > 0) {
     stock = variantStockSum;
   } else {
-    // Fallback: Avoid hardcoded 0 stock on fresh import
     stock = 50;
   }
 
@@ -130,8 +129,7 @@ export function normalizeCjItem(cjItem) {
 }
 
 /**
- * cjSyncService - Manages Product Imports and Synchronization Locks.
- * Strictly imports items as "draft".
+ * cjSyncService - Manages Product Imports directly to Express MySQL Backend APIs.
  */
 export const cjSyncService = {
   calculatePrice(costPrice = 20, freightCost = 8, handlingFee = 5, marginPercent = 30) {
@@ -141,7 +139,7 @@ export const cjSyncService = {
     return Math.max(1000, roundedInt);
   },
 
-  importCjProduct(cjRawProduct, marginPercent = 30) {
+  async importCjProduct(cjRawProduct, marginPercent = 30) {
     const norm = normalizeCjItem(cjRawProduct);
     if (!norm) return null;
 
@@ -193,31 +191,29 @@ export const cjSyncService = {
       isBestSeller: false,
       isNewArrival: true,
       isTrending: false,
-      isRecommended: false,
-      fieldLocks: {
-        lockTitle: false,
-        lockDescription: false,
-        lockPrice: false,
-        lockImages: false
-      }
+      isRecommended: false
     };
 
-    // Structured Audit Log for Import
+    console.log('[Import Clicked] Triggered importCjProduct for CJ PID:', norm.pid);
     console.log('==================================================');
-    console.log('📦 [CJ IMPORT AUDIT LOG]');
+    console.log('📦 [POST /api/cj/import] Requesting MySQL Insert');
     console.log(`• CJ Product ID:   ${norm.pid || 'N/A'}`);
     console.log(`• SKU:             ${norm.sku}`);
     console.log(`• Stock Quantity:  ${draftProduct.stock}`);
     console.log(`• Variant Count:   ${draftProduct.variants.length}`);
     console.log(`• Images Imported: ${draftProduct.images.length}`);
-    console.log(`• Description Len: ${draftProduct.description.length} chars`);
     console.log('==================================================');
 
-    return productRepository.saveProduct(draftProduct);
+    const result = await productRepository.importCjProduct(draftProduct);
+    if (result) {
+      console.log('[SQL INSERT SUCCESS] Product inserted into MySQL database table `products`');
+      console.log(`[Inserted Product ID]: ${result.id}`);
+    }
+    return result;
   },
 
-  syncProductInventory(productId, updatedCjData) {
-    const existing = productRepository.getById(productId);
+  async syncProductInventory(productId, updatedCjData) {
+    const existing = await productRepository.getById(productId);
     if (!existing) return null;
 
     const norm = normalizeCjItem(updatedCjData);
@@ -227,15 +223,9 @@ export const cjSyncService = {
       stock: norm && norm.stock > 0 ? norm.stock : existing.stock,
       weight: updatedCjData.weight || existing.weight,
       warehouse: updatedCjData.warehouse || existing.warehouse,
-      supplierSku: norm ? norm.sku : existing.supplierSku,
-      name: existing.name,
-      description: existing.description,
-      price: existing.price,
-      image1: existing.image1,
-      image2: existing.image2,
-      status: existing.status
+      supplierSku: norm ? norm.sku : existing.supplierSku
     };
 
-    return productRepository.saveProduct(syncedProduct);
+    return await productRepository.saveProduct(syncedProduct);
   }
 };

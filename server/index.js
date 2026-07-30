@@ -2,8 +2,13 @@ import express from 'express';
 import cors from 'cors';
 import dotenv from 'dotenv';
 import jwt from 'jsonwebtoken';
+import { initDb } from './db.js';
+import { productDbService } from './productDbService.js';
 
 dotenv.config();
+
+// Initialize MySQL Database Pool
+initDb().catch(console.error);
 
 const app = express();
 const PORT = process.env.PORT || 5000;
@@ -672,6 +677,161 @@ function getMockDetail(pid) {
     ]
   };
 }
+
+// ==================================================
+// MySQL PRODUCTION REST API ENDPOINTS
+// ==================================================
+
+// 1. GET /api/products (List products with filter/search)
+app.get('/api/products', async (req, res) => {
+  try {
+    const products = await productDbService.getAllProducts(req.query);
+    res.json({
+      success: true,
+      message: 'Products retrieved successfully from MySQL database',
+      count: products.length,
+      data: products
+    });
+  } catch (err) {
+    res.status(500).json({ success: false, message: 'Failed to fetch products: ' + err.message, data: [] });
+  }
+});
+
+// 2. GET /api/products/:id (Get single product by ID or cjPid)
+app.get('/api/products/:id', async (req, res) => {
+  try {
+    const product = await productDbService.getProductById(req.params.id);
+    if (!product) {
+      return res.status(404).json({ success: false, message: 'Product not found in MySQL database', data: null });
+    }
+    res.json({ success: true, message: 'Product detail retrieved', data: product });
+  } catch (err) {
+    res.status(500).json({ success: false, message: 'Failed to fetch product: ' + err.message, data: null });
+  }
+});
+
+// 3. POST /api/products (Create/Save product to MySQL)
+app.post('/api/products', async (req, res) => {
+  try {
+    const saved = await productDbService.saveProduct(req.body);
+    res.json({ success: true, message: 'Product saved successfully to MySQL database', data: saved });
+  } catch (err) {
+    res.status(400).json({ success: false, message: 'Failed to save product: ' + err.message });
+  }
+});
+
+// 4. PUT /api/products/:id (Update product details/status in MySQL)
+app.put('/api/products/:id', async (req, res) => {
+  try {
+    if (req.body.status && Object.keys(req.body).length === 1) {
+      const updated = await productDbService.setProductStatus(req.params.id, req.body.status);
+      return res.json({ success: true, message: `Product status updated to ${req.body.status}`, data: updated });
+    }
+    const updated = await productDbService.saveProduct({ ...req.body, id: req.params.id });
+    res.json({ success: true, message: 'Product updated in MySQL database', data: updated });
+  } catch (err) {
+    res.status(400).json({ success: false, message: 'Failed to update product: ' + err.message });
+  }
+});
+
+// 5. DELETE /api/products/:id (Delete product from MySQL)
+app.delete('/api/products/:id', async (req, res) => {
+  try {
+    await productDbService.deleteProduct(req.params.id);
+    res.json({ success: true, message: 'Product deleted from MySQL database', id: req.params.id });
+  } catch (err) {
+    res.status(500).json({ success: false, message: 'Failed to delete product: ' + err.message });
+  }
+});
+
+// 6. GET /api/categories
+app.get('/api/categories', async (req, res) => {
+  try {
+    const categories = await productDbService.getCategories();
+    res.json({ success: true, message: 'Categories retrieved from MySQL database', data: categories });
+  } catch (err) {
+    res.status(500).json({ success: false, message: err.message, data: [] });
+  }
+});
+
+// 7. GET /api/brands
+app.get('/api/brands', async (req, res) => {
+  try {
+    const brands = await productDbService.getBrands();
+    res.json({ success: true, message: 'Brands retrieved from MySQL database', data: brands });
+  } catch (err) {
+    res.status(500).json({ success: false, message: err.message, data: [] });
+  }
+});
+
+// 8. GET & POST /api/orders
+app.get('/api/orders', async (req, res) => {
+  try {
+    const orders = await productDbService.getOrders();
+    res.json({ success: true, message: 'Orders retrieved from MySQL database', data: orders });
+  } catch (err) {
+    res.status(500).json({ success: false, message: err.message, data: [] });
+  }
+});
+
+app.post('/api/orders', async (req, res) => {
+  try {
+    const saved = await productDbService.saveOrder(req.body);
+    res.json({ success: true, message: 'Order created in MySQL database', data: saved });
+  } catch (err) {
+    res.status(400).json({ success: false, message: err.message });
+  }
+});
+
+// 9. PATCH /api/products/:id/inventory
+app.patch('/api/products/:id/inventory', async (req, res) => {
+  try {
+    const updated = await productDbService.updateInventory(req.params.id, req.body.stock);
+    res.json({ success: true, message: 'Inventory updated in MySQL database', data: updated });
+  } catch (err) {
+    res.status(400).json({ success: false, message: err.message });
+  }
+});
+
+// 10. POST /api/cj/import (Direct import CJ -> Backend -> MySQL)
+app.post('/api/cj/import', async (req, res) => {
+  try {
+    console.log('[POST /api/cj/import] Incoming CJ import request received on Express backend');
+    const cjData = req.body;
+    const saved = await productDbService.saveProduct({
+      ...cjData,
+      source: 'cj',
+      status: 'draft'
+    });
+
+    console.log('[SQL INSERT SUCCESS] Product inserted into MySQL database table `products`');
+    console.log(`[Inserted Product ID]: ${saved.id}`);
+
+    res.json({
+      success: true,
+      message: `Successfully imported CJ product "${saved.name}" directly into MySQL database as DRAFT`,
+      data: saved
+    });
+  } catch (err) {
+    console.error('[MySQL CJ Import Error]:', err);
+    res.status(400).json({ success: false, message: 'Failed to import CJ product to MySQL: ' + err.message });
+  }
+});
+
+// 11. POST /api/cj/sync (Sync CJ stock/prices to MySQL)
+app.post('/api/cj/sync', async (req, res) => {
+  try {
+    const { productId, stock, price } = req.body;
+    const updated = await productDbService.updateInventory(productId, stock);
+    res.json({
+      success: true,
+      message: 'CJ synchronization updated MySQL database',
+      data: updated
+    });
+  } catch (err) {
+    res.status(400).json({ success: false, message: 'CJ Sync failed: ' + err.message });
+  }
+});
 
 // Global Catch-all Error Handler (Prevents silent 500 crashes)
 app.use((err, req, res, next) => {

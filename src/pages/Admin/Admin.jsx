@@ -194,7 +194,7 @@ const Admin = () => {
     try {
       const res = await cjApi.getProductDetail(importPid.trim());
       if (res.data) {
-        importCjProductToDraft(res.data);
+        await importCjProductToDraft(res.data);
         setImportPid('');
       } else {
         showToast('Could not find product with PID ' + importPid, 'error');
@@ -643,7 +643,7 @@ const Admin = () => {
                         </div>
                         <button
                           className="btn btn-primary btn-sm btn-block shadow-btn"
-                          onClick={() => importCjProductToDraft(cjItem)}
+                          onClick={async () => await importCjProductToDraft(cjItem)}
                         >
                           Import to Drafts
                         </button>

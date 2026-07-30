@@ -1,151 +1,57 @@
 import { BaseRepository } from './BaseRepository';
-import { products as rawProducts } from '../data/products';
 
 /**
- * ProductRepository - Handles internal product database operations.
- * Implements Shopify-style workflow statuses and version history.
+ * ProductRepository - Production Database Operations via Express REST APIs.
+ * Connects directly to MySQL. Zero localStorage usage for products/catalog.
  */
 export class ProductRepository extends BaseRepository {
   constructor() {
-    super('option_one_products_v3');
-    this.initDefaultProducts();
+    super('/api/products');
   }
 
-  initDefaultProducts() {
-    const existing = this.getLocalData();
-    if (!existing) {
-      this.setLocalData([]);
-    }
+  async getAllProducts(filters = {}) {
+    return await this.getAll(filters);
   }
 
-  getAll() {
-    return this.getLocalData() || [];
+  async getPublished() {
+    return await this.getAll({ status: 'published' });
   }
 
-  /**
-   * Strictly returns products where status === 'published'
-   */
-  getPublished() {
-    return (this.getLocalData() || []).filter((p) => p.status === 'published');
+  async getById(id) {
+    const res = await this.fetchApi(`/api/products/${id}`);
+    return res.data || null;
   }
 
-  getById(id) {
-    const all = this.getAll();
-    return all.find((p) => String(p.id) === String(id) || String(p.cjPid) === String(id));
+  async saveProduct(productData) {
+    const res = await this.fetchApi('/api/products', {
+      method: 'POST',
+      body: JSON.stringify(productData)
+    });
+    return res.data || null;
   }
 
-  saveProduct(productData) {
-    const all = this.getAll();
-    const existingIndex = all.findIndex((p) => String(p.id) === String(productData.id));
-
-    const now = new Date().toISOString();
-
-    if (existingIndex > -1) {
-      const existing = all[existingIndex];
-      const newVersionNum = (existing.version || 1) + 1;
-
-      const newVersionSnapshot = {
-        versionId: newVersionNum,
-        savedAt: now,
-        savedBy: 'Admin User',
-        snapshot: { ...productData }
-      };
-
-      const updatedVersions = [newVersionSnapshot, ...(existing.versions || [])].slice(0, 10);
-
-      const updatedProduct = {
-        ...existing,
-        ...productData,
-        version: newVersionNum,
-        versions: updatedVersions,
-        updatedAt: now
-      };
-
-      all[existingIndex] = updatedProduct;
-      this.setLocalData(all);
-      return updatedProduct;
-    } else {
-      // New Product creation
-      const newProduct = {
-        ...productData,
-        id: productData.id || `prd_${Date.now()}`,
-        status: productData.status || 'draft',
-        source: productData.source || 'manual',
-        version: 1,
-        versions: [
-          {
-            versionId: 1,
-            savedAt: now,
-            savedBy: 'Admin User',
-            snapshot: { ...productData }
-          }
-        ],
-        createdAt: now,
-        updatedAt: now
-      };
-
-      all.unshift(newProduct);
-      this.setLocalData(all);
-      return newProduct;
-    }
+  async setProductStatus(id, newStatus) {
+    const res = await this.fetchApi(`/api/products/${id}`, {
+      method: 'PUT',
+      body: JSON.stringify({ status: newStatus })
+    });
+    return res.data || null;
   }
 
-  setProductStatus(id, newStatus) {
-    const all = this.getAll();
-    const index = all.findIndex((p) => String(p.id) === String(id) || String(p.cjPid) === String(id));
-    if (index > -1) {
-      const p = all[index];
-
-      // Audit Validation before Publishing (Prevent publishing missing IDs or 0 stock)
-      if (newStatus === 'published') {
-        if (!p.id) {
-          throw new Error('Cannot publish product: Missing product ID.');
-        }
-        if (!p.stock || Number(p.stock) <= 0) {
-          if (p.variants && p.variants.length > 0) {
-            const variantSum = p.variants.reduce((sum, v) => sum + (Number(v.stock) || 0), 0);
-            p.stock = variantSum > 0 ? variantSum : 50;
-          } else {
-            p.stock = 50;
-          }
-        }
-      }
-
-      all[index].status = newStatus;
-      all[index].updatedAt = new Date().toISOString();
-      this.setLocalData(all);
-      return all[index];
-    }
-    return null;
+  async deleteProduct(id) {
+    const res = await this.fetchApi(`/api/products/${id}`, {
+      method: 'DELETE'
+    });
+    return res.success || false;
   }
 
-  restoreVersion(productId, versionId) {
-    const all = this.getAll();
-    const index = all.findIndex((p) => String(p.id) === String(productId));
-
-    if (index > -1) {
-      const target = all[index];
-      const targetVersion = (target.versions || []).find((v) => v.versionId === Number(versionId));
-      if (targetVersion && targetVersion.snapshot) {
-        const restored = {
-          ...targetVersion.snapshot,
-          version: (target.version || 1) + 1,
-          versions: target.versions,
-          updatedAt: new Date().toISOString()
-        };
-        all[index] = restored;
-        this.setLocalData(all);
-        return restored;
-      }
-    }
-    return null;
-  }
-
-  deleteProduct(id) {
-    const all = this.getAll();
-    const filtered = all.filter((p) => String(p.id) !== String(id));
-    this.setLocalData(filtered);
-    return true;
+  async importCjProduct(cjPayload) {
+    console.log('[POST /api/cj/import] Sending CJ import payload to Express backend');
+    const res = await this.fetchApi('/api/cj/import', {
+      method: 'POST',
+      body: JSON.stringify(cjPayload)
+    });
+    return res.data || null;
   }
 }
 

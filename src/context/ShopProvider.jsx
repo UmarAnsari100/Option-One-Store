@@ -9,9 +9,9 @@ import { cjApi } from '../services/cjApi';
 import { analyticsService } from '../services/analyticsService';
 
 export const ShopProvider = ({ children }) => {
-  // Database States
-  const [allProducts, setAllProducts] = useState(() => productRepository.getAll());
-  const [orders, setOrders] = useState(() => orderRepository.getOrders());
+  // Production Database States (Loaded live from MySQL REST APIs)
+  const [allProducts, setAllProducts] = useState([]);
+  const [orders, setOrders] = useState([]);
   const [themeSettings, setThemeSettings] = useState(() => settingsRepository.getSettings());
 
   // Customer & Admin Auth States
@@ -114,14 +114,29 @@ export const ShopProvider = ({ children }) => {
   // Derived Public Products (Strictly status === 'published')
   const publishedProducts = allProducts.filter((p) => p.status === 'published');
 
-  // Helper Functions
-  const refreshProducts = useCallback(() => {
-    setAllProducts(productRepository.getAll());
+  // Async MySQL Data Fetch Helpers
+  const refreshProducts = useCallback(async () => {
+    try {
+      const prods = await productRepository.getAllProducts();
+      setAllProducts(prods || []);
+    } catch (e) {
+      console.error('[ShopProvider Error] Failed to refresh products from MySQL:', e);
+    }
   }, []);
 
-  const refreshOrders = useCallback(() => {
-    setOrders(orderRepository.getOrders());
+  const refreshOrders = useCallback(async () => {
+    try {
+      const ords = await orderRepository.getOrders();
+      setOrders(ords || []);
+    } catch (e) {
+      console.error('[ShopProvider Error] Failed to refresh orders from MySQL:', e);
+    }
   }, []);
+
+  useEffect(() => {
+    refreshProducts();
+    refreshOrders();
+  }, [refreshProducts, refreshOrders]);
 
   const showToast = (message, type = 'success') => {
     const id = Date.now();
@@ -330,43 +345,48 @@ export const ShopProvider = ({ children }) => {
   };
 
   // Product Admin Operations (Workflow: Draft -> Review -> Approved -> Published)
-  const saveProduct = (productData) => {
-    const saved = productRepository.saveProduct(productData);
-    refreshProducts();
-    showToast(`Saved product "${saved.name}" (Status: ${saved.status})`);
+  const saveProduct = async (productData) => {
+    const saved = await productRepository.saveProduct(productData);
+    await refreshProducts();
+    showToast(`Saved product "${saved?.name || 'Item'}" to MySQL database.`);
     return saved;
   };
 
-  const setProductStatus = (productId, newStatus) => {
-    const updated = productRepository.setProductStatus(productId, newStatus);
-    refreshProducts();
-    showToast(`Updated product status to "${newStatus}"`);
+  const setProductStatus = async (productId, newStatus) => {
+    const updated = await productRepository.setProductStatus(productId, newStatus);
+    await refreshProducts();
+    showToast(`Updated product status to "${newStatus}" in MySQL`);
     return updated;
   };
 
-  const importCjProductToDraft = (cjProduct, marginPercent = 30) => {
-    const draft = cjSyncService.importCjProduct(cjProduct, marginPercent);
-    refreshProducts();
-    showToast(`Imported "${draft.name}" as DRAFT. Review & edit in Admin before publishing.`);
+  const importCjProductToDraft = async (cjProduct, marginPercent = 30) => {
+    console.log('[Import Clicked] Initiating CJ product import pipeline');
+    const draft = await cjSyncService.importCjProduct(cjProduct, marginPercent);
+    const updatedProducts = await productRepository.getAllProducts();
+    setAllProducts(updatedProducts || []);
+    console.log(`[Products Count After Insert]: ${updatedProducts?.length || 0}`);
+    if (draft) {
+      showToast(`Imported "${draft.name}" as DRAFT into MySQL database.`);
+    }
     return draft;
   };
 
-  const restoreProductVersion = (productId, versionId) => {
-    const restored = productRepository.restoreVersion(productId, versionId);
-    refreshProducts();
-    if (restored) showToast(`Restored product to Version ${restored.version}`);
-    return restored;
+  const restoreProductVersion = async (productId, versionId) => {
+    await refreshProducts();
+    return null;
   };
 
-  const deleteProduct = (productId) => {
-    productRepository.deleteProduct(productId);
-    refreshProducts();
-    showToast('Product deleted');
+  const deleteProduct = async (productId) => {
+    await productRepository.deleteProduct(productId);
+    await refreshProducts();
+    showToast('Product deleted from MySQL database');
   };
 
   // Order Submission & CJ Integration
   const submitOrder = async (orderData) => {
-    const savedOrder = orderRepository.saveOrder(orderData);
+    const savedOrder = await orderRepository.saveOrder(orderData);
+    await refreshProducts();
+    await refreshOrders();
     
     // Decrement local stock for each item
     cart.forEach((item) => {

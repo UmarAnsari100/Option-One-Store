@@ -1,6 +1,7 @@
 import React, { useContext, useState, useEffect, useRef } from 'react';
 import { useParams, useLocation, Link, useNavigate } from 'react-router-dom';
 import { ShopContext } from '../../context/ShopContext';
+import { productRepository } from '../../repositories/ProductRepository';
 import { cjApi } from '../../services/cjApi';
 import { normalizeCjItem } from '../../services/cjSyncService';
 import SEO from '../../components/SEO/SEO';
@@ -107,13 +108,13 @@ const Product = () => {
           return;
         }
 
-        // 1. Search Local Database (Published & All products)
+        // 1. Search in-memory context (Published & All products)
         const localFound =
           (products || []).find((p) => String(p.id) === String(id) || String(p.cjPid) === String(id)) ||
           (allProducts || []).find((p) => String(p.id) === String(id) || String(p.cjPid) === String(id));
 
         if (localFound) {
-          console.log('[Product Page Success]: Found product in local database repository:', localFound.name);
+          console.log('[Product Page Success]: Found product in context:', localFound.name);
           if (isMounted) {
             setProduct(localFound);
             setActiveImage(localFound.image1 || localFound.images?.[0] || '');
@@ -132,7 +133,29 @@ const Product = () => {
           return;
         }
 
-        // 2. Check location.state
+        // 2. Fetch directly from MySQL REST API endpoint (/api/products/:id)
+        const dbRes = await productRepository.getById(id);
+        if (dbRes) {
+          console.log('[Product Page Success]: Received product detail from MySQL API:', dbRes.name);
+          if (isMounted) {
+            setProduct(dbRes);
+            setActiveImage(dbRes.image1 || dbRes.images?.[0] || '');
+            if (dbRes.variants && dbRes.variants.length > 0) {
+              setSelectedVariant(dbRes.variants[0]);
+            } else {
+              setSelectedVariant(null);
+            }
+            setQuantity(1);
+            setActiveMedia('gallery');
+            setAngleIndex(0);
+            setZoomScale(1);
+            setReviewsList(dbRes.reviewsList || []);
+            addToRecentlyViewed(dbRes);
+          }
+          return;
+        }
+
+        // 3. Check location.state
         if (location.state?.product) {
           console.log('[Product Page Success]: Found product in location.state payload:', location.state.product.name);
           const stateProd = location.state.product;
