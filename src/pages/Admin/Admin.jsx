@@ -21,6 +21,7 @@ import {
   LogOut,
   Sparkles,
   Eye,
+  EyeOff,
   Edit3,
   Trash2,
   Tag,
@@ -57,6 +58,7 @@ const Admin = () => {
   // Auth Inputs
   const [loginEmail, setLoginEmail] = useState('');
   const [loginPassword, setLoginPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
 
   // CJ Catalog Search States
   const [cjKeyword, setCjKeyword] = useState('');
