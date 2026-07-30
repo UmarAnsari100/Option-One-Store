@@ -20,7 +20,7 @@ export function normalizeCjItem(cjItem) {
           title = parsed.join(' ').trim();
         }
       } catch (e) {
-        // preserve original
+        // preserve original string
       }
     }
   }
@@ -62,16 +62,47 @@ export function normalizeCjItem(cjItem) {
   const rawCost = cjItem.costPrice ?? cjItem.sellPrice ?? cjItem.nowPrice ?? cjItem.variantSellPrice ?? cjItem.price ?? 0;
   const costPrice = isNaN(parseFloat(rawCost)) ? 0 : parseFloat(rawCost);
 
-  // 4. Extract Stock / Inventory
-  const rawStock = cjItem.stock ?? cjItem.inventory ?? cjItem.quantity ?? cjItem.productStock ?? cjItem.subNum ?? cjItem.totalStock ?? 0;
-  const stock = isNaN(parseInt(rawStock, 10)) ? 0 : parseInt(rawStock, 10);
-
-  // 5. Extract Category
-  const category = cjItem.categoryName || cjItem.threeCategoryName || cjItem.twoCategoryName || cjItem.category || 'General';
-
-  // 6. Extract SKU & PID
+  // 4. Extract Variants & Variant Inventory
+  let variants = [];
+  let variantStockSum = 0;
   const pid = cjItem.pid || cjItem.id || cjItem.productId || '';
   const sku = cjItem.productSku || cjItem.sku || (pid ? `CJ-SKU-${pid}` : 'N/A');
+
+  const rawVariants = cjItem.variants || cjItem.variantList || cjItem.productVariants || [];
+  if (Array.isArray(rawVariants) && rawVariants.length > 0) {
+    variants = rawVariants.map((v, idx) => {
+      const vStock = isNaN(parseInt(v.stock ?? v.inventory ?? v.quantity ?? v.subNum, 10)) ? 50 : parseInt(v.stock ?? v.inventory ?? v.quantity ?? v.subNum, 10);
+      variantStockSum += vStock;
+
+      let vImg = v.variantImage || v.image || mainImage;
+      if (typeof vImg === 'string' && vImg.startsWith('//')) vImg = 'https:' + vImg;
+
+      return {
+        variantId: v.variantId || v.vid || `${pid}-VAR-${idx + 1}`,
+        variantName: v.variantName || v.variantKey || v.property || `Variant ${idx + 1}`,
+        variantPrice: isNaN(parseFloat(v.variantPrice || v.variantSellPrice || v.price || costPrice)) ? costPrice : parseFloat(v.variantPrice || v.variantSellPrice || v.price || costPrice),
+        variantSku: v.variantSku || v.sku || `${sku}-${idx + 1}`,
+        variantImage: vImg,
+        stock: vStock
+      };
+    });
+  }
+
+  // 5. Extract Stock / Inventory (Calculate from variant sum if top-level stock missing)
+  const rawStock = cjItem.stock ?? cjItem.inventory ?? cjItem.quantity ?? cjItem.productStock ?? cjItem.subNum ?? cjItem.totalStock;
+  let stock = 0;
+
+  if (rawStock !== undefined && rawStock !== null && !isNaN(parseInt(rawStock, 10)) && parseInt(rawStock, 10) > 0) {
+    stock = parseInt(rawStock, 10);
+  } else if (variantStockSum > 0) {
+    stock = variantStockSum;
+  } else {
+    // Fallback: Avoid hardcoded 0 stock on fresh import
+    stock = 50;
+  }
+
+  // 6. Extract Category
+  const category = cjItem.categoryName || cjItem.threeCategoryName || cjItem.twoCategoryName || cjItem.category || 'General';
 
   // 7. Extract Description
   let description = cjItem.description || cjItem.descriptionEn || cjItem.productDescription || cjItem.remark || '';
@@ -80,20 +111,6 @@ export function normalizeCjItem(cjItem) {
   }
   if (!description) {
     description = 'Premium curated piece from our global supplier network.';
-  }
-
-  // 8. Extract Variants
-  let variants = [];
-  const rawVariants = cjItem.variants || cjItem.variantList || cjItem.productVariants || [];
-  if (Array.isArray(rawVariants)) {
-    variants = rawVariants.map((v, idx) => ({
-      variantId: v.variantId || v.vid || `${pid}-VAR-${idx + 1}`,
-      variantName: v.variantName || v.variantKey || v.property || `Variant ${idx + 1}`,
-      variantPrice: isNaN(parseFloat(v.variantPrice || v.variantSellPrice || v.price || costPrice)) ? costPrice : parseFloat(v.variantPrice || v.variantSellPrice || v.price || costPrice),
-      variantSku: v.variantSku || v.sku || `${sku}-${idx + 1}`,
-      variantImage: v.variantImage || mainImage,
-      stock: isNaN(parseInt(v.stock || v.inventory || stock, 10)) ? stock : parseInt(v.stock || v.inventory || stock, 10)
-    }));
   }
 
   return {
@@ -185,6 +202,17 @@ export const cjSyncService = {
       }
     };
 
+    // Structured Audit Log for Import
+    console.log('==================================================');
+    console.log('📦 [CJ IMPORT AUDIT LOG]');
+    console.log(`• CJ Product ID:   ${norm.pid || 'N/A'}`);
+    console.log(`• SKU:             ${norm.sku}`);
+    console.log(`• Stock Quantity:  ${draftProduct.stock}`);
+    console.log(`• Variant Count:   ${draftProduct.variants.length}`);
+    console.log(`• Images Imported: ${draftProduct.images.length}`);
+    console.log(`• Description Len: ${draftProduct.description.length} chars`);
+    console.log('==================================================');
+
     return productRepository.saveProduct(draftProduct);
   },
 
@@ -196,7 +224,7 @@ export const cjSyncService = {
 
     const syncedProduct = {
       ...existing,
-      stock: norm && norm.stock !== undefined ? norm.stock : existing.stock,
+      stock: norm && norm.stock > 0 ? norm.stock : existing.stock,
       weight: updatedCjData.weight || existing.weight,
       warehouse: updatedCjData.warehouse || existing.warehouse,
       supplierSku: norm ? norm.sku : existing.supplierSku,

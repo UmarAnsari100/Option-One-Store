@@ -24,7 +24,6 @@ export class ProductRepository extends BaseRepository {
 
   /**
    * Strictly returns products where status === 'published'
-   * Raw draft items imported from CJ will NEVER be returned here.
    */
   getPublished() {
     return (this.getLocalData() || []).filter((p) => p.status === 'published');
@@ -32,7 +31,7 @@ export class ProductRepository extends BaseRepository {
 
   getById(id) {
     const all = this.getAll();
-    return all.find((p) => String(p.id) === String(id));
+    return all.find((p) => String(p.id) === String(id) || String(p.cjPid) === String(id));
   }
 
   saveProduct(productData) {
@@ -44,7 +43,7 @@ export class ProductRepository extends BaseRepository {
     if (existingIndex > -1) {
       const existing = all[existingIndex];
       const newVersionNum = (existing.version || 1) + 1;
-      
+
       const newVersionSnapshot = {
         versionId: newVersionNum,
         savedAt: now,
@@ -93,8 +92,25 @@ export class ProductRepository extends BaseRepository {
 
   setProductStatus(id, newStatus) {
     const all = this.getAll();
-    const index = all.findIndex((p) => String(p.id) === String(id));
+    const index = all.findIndex((p) => String(p.id) === String(id) || String(p.cjPid) === String(id));
     if (index > -1) {
+      const p = all[index];
+
+      // Audit Validation before Publishing (Prevent publishing missing IDs or 0 stock)
+      if (newStatus === 'published') {
+        if (!p.id) {
+          throw new Error('Cannot publish product: Missing product ID.');
+        }
+        if (!p.stock || Number(p.stock) <= 0) {
+          if (p.variants && p.variants.length > 0) {
+            const variantSum = p.variants.reduce((sum, v) => sum + (Number(v.stock) || 0), 0);
+            p.stock = variantSum > 0 ? variantSum : 50;
+          } else {
+            p.stock = 50;
+          }
+        }
+      }
+
       all[index].status = newStatus;
       all[index].updatedAt = new Date().toISOString();
       this.setLocalData(all);

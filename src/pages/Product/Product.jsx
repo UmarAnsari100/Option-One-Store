@@ -36,6 +36,7 @@ const Product = () => {
   const navigate = useNavigate();
   const {
     products,
+    allProducts,
     addToCart,
     toggleWishlist,
     isInWishlist,
@@ -46,6 +47,7 @@ const Product = () => {
 
   const [product, setProduct] = useState(null);
   const [activeImage, setActiveImage] = useState('');
+  const [selectedVariant, setSelectedVariant] = useState(null);
   const [quantity, setQuantity] = useState(1);
   const [activeTab, setActiveTab] = useState('description');
   const [activeMedia, setActiveMedia] = useState('gallery'); // 'gallery', 'video'
@@ -79,22 +81,32 @@ const Product = () => {
 
   useEffect(() => {
     setIsLoading(true);
-    const foundProduct = products.find((p) => p.id === Number(id));
+    const foundProduct =
+      (products || []).find((p) => String(p.id) === String(id) || String(p.cjPid) === String(id)) ||
+      (allProducts || []).find((p) => String(p.id) === String(id) || String(p.cjPid) === String(id));
+
     if (foundProduct) {
       setProduct(foundProduct);
-      setActiveImage(foundProduct.image1);
+      setActiveImage(foundProduct.image1 || foundProduct.images?.[0] || '');
+      if (foundProduct.variants && foundProduct.variants.length > 0) {
+        setSelectedVariant(foundProduct.variants[0]);
+      } else {
+        setSelectedVariant(null);
+      }
       setQuantity(1);
       setActiveMedia('gallery');
       setAngleIndex(0);
       setZoomScale(1);
       setReviewsList(foundProduct.reviewsList || []);
       addToRecentlyViewed(foundProduct);
+    } else {
+      setProduct(null);
     }
     const timer = setTimeout(() => {
       setIsLoading(false);
     }, 450);
     return () => clearTimeout(timer);
-  }, [id, products]);
+  }, [id, products, allProducts]);
 
   // Keyboard navigation inside image gallery
   useEffect(() => {
@@ -303,7 +315,14 @@ const Product = () => {
     1: Math.round((reviewsList.filter(r => r.rating === 1).length + 2) / totalReviewsCount * 100),
   };
 
-  const imagesList = [product.image1, product.image2, ...(product.multiAngleImages || []).slice(2, 5)];
+  const imagesList = Array.from(
+    new Set([
+      product.image1,
+      product.image2,
+      ...(product.images || []),
+      ...(product.multiAngleImages || [])
+    ])
+  ).filter(Boolean);
 
   return (
     <div className="product-page-wrapper">
@@ -436,7 +455,7 @@ const Product = () => {
                 ))}
                 <span>({totalReviewsCount} reviews)</span>
               </div>
-              <span className="sku-details-label">SKU: {product.sku}</span>
+              <span className="sku-details-label">SKU: {selectedVariant?.variantSku || product.sku}</span>
             </div>
 
             <div className="details-pricing">
@@ -452,6 +471,42 @@ const Product = () => {
             </div>
 
             <p className="details-excerpt">{product.description}</p>
+
+            {/* Variants Selector */}
+            {product.variants && product.variants.length > 0 && (
+              <div className="variants-selector-wrapper" style={{ margin: '1.25rem 0' }}>
+                <span className="qty-title" style={{ display: 'block', marginBottom: '0.5rem', fontWeight: 600, fontSize: '0.85rem' }}>
+                  Select Option:
+                </span>
+                <div className="variants-grid-btn" style={{ display: 'flex', flexWrap: 'wrap', gap: '0.5rem' }}>
+                  {product.variants.map((variant, idx) => (
+                    <button
+                      key={variant.variantId || idx}
+                      type="button"
+                      className={`variant-pill-btn ${selectedVariant?.variantId === variant.variantId ? 'active' : ''}`}
+                      style={{
+                        padding: '0.45rem 1rem',
+                        borderRadius: '20px',
+                        fontSize: '0.82rem',
+                        fontFamily: 'var(--font-ui)',
+                        border: selectedVariant?.variantId === variant.variantId ? '2px solid var(--color-primary)' : '1px solid var(--color-border)',
+                        background: selectedVariant?.variantId === variant.variantId ? 'rgba(51, 96, 33, 0.08)' : 'var(--color-white)',
+                        color: selectedVariant?.variantId === variant.variantId ? 'var(--color-primary)' : 'var(--color-text-main)',
+                        fontWeight: selectedVariant?.variantId === variant.variantId ? 600 : 400,
+                        cursor: 'pointer',
+                        transition: 'all 0.2s ease'
+                      }}
+                      onClick={() => {
+                        setSelectedVariant(variant);
+                        if (variant.variantImage) setActiveImage(variant.variantImage);
+                      }}
+                    >
+                      {variant.variantName} {variant.stock !== undefined ? `(${variant.stock} available)` : ''}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
 
             {/* Buy Form */}
             <div className="product-buy-form">
