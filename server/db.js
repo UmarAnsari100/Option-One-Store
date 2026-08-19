@@ -4,11 +4,11 @@ dotenv.config();
 
 // MySQL Configuration
 const dbConfig = {
-  host: process.env.MYSQL_HOST || process.env.DB_HOST || 'localhost',
-  user: process.env.MYSQL_USER || process.env.DB_USER || 'root',
-  password: process.env.MYSQL_PASSWORD || process.env.DB_PASSWORD || '',
-  database: process.env.MYSQL_DATABASE || process.env.DB_NAME || 'option_one_store',
-  port: Number(process.env.MYSQL_PORT || process.env.DB_PORT || 3306),
+  host: process.env.DB_HOST || process.env.MYSQL_HOST || 'localhost',
+  port: Number(process.env.DB_PORT || process.env.MYSQL_PORT || 3306),
+  user: process.env.DB_USER || process.env.MYSQL_USER || 'root',
+  password: process.env.DB_PASSWORD || process.env.MYSQL_PASSWORD || '',
+  database: process.env.DB_NAME || process.env.MYSQL_DATABASE || 'option_one_store',
   waitForConnections: true,
   connectionLimit: 15,
   queueLimit: 0
@@ -117,19 +117,7 @@ inMemoryStore.products = [...seedProducts];
  */
 export async function initDb() {
   try {
-    // Attempt connecting to MySQL server
-    const serverConnection = await mysql.createConnection({
-      host: dbConfig.host,
-      user: dbConfig.user,
-      password: dbConfig.password,
-      port: dbConfig.port
-    });
-
-    // Create database if not exists
-    await serverConnection.query(`CREATE DATABASE IF NOT EXISTS \`${dbConfig.database}\`;`);
-    await serverConnection.end();
-
-    // Create Pool
+    // Create Pool directly using cPanel database credentials
     pool = mysql.createPool(dbConfig);
     const conn = await pool.getConnection();
 
@@ -268,6 +256,42 @@ export async function initDb() {
       ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
     `);
 
+    // Auto-seed initial products if products table is empty
+    const [countRows] = await conn.query('SELECT COUNT(*) as count FROM products');
+    if (countRows && countRows[0].count === 0 && seedProducts.length > 0) {
+      console.log('🌱 [MySQL Init] Products table empty. Inserting seed products...');
+      for (const p of seedProducts) {
+        await conn.query(
+          `INSERT INTO products (
+            id, cj_pid, sku, supplier_sku, name, brand, category, price, compare_price, cost_price,
+            freight_cost, handling_fee, margin_percent, discount, rating, reviews, badge, image1, image2,
+            description, short_description, stock, weight, dimensions, warehouse, source, status,
+            is_featured, is_best_seller, is_new_arrival
+          ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+          ON DUPLICATE KEY UPDATE id=id`,
+          [
+            p.id, p.cjPid, p.sku, p.supplierSku, p.name, p.brand, p.category, p.price, p.comparePrice, p.costPrice,
+            p.freightCost, p.handlingFee, p.marginPercent, p.discount, p.rating, p.reviews, p.badge, p.image1, p.image2,
+            p.description, p.shortDescription, p.stock, p.weight, p.dimensions, p.warehouse, p.source, p.status,
+            p.isFeatured ? 1 : 0, p.isBestSeller ? 1 : 0, p.isNewArrival ? 1 : 0
+          ]
+        );
+        if (Array.isArray(p.images) && p.images.length > 0) {
+          for (let i = 0; i < p.images.length; i++) {
+            await conn.query(`INSERT INTO product_images (product_id, image_url, display_order) VALUES (?, ?, ?)`, [p.id, p.images[i], i]);
+          }
+        }
+        if (Array.isArray(p.variants) && p.variants.length > 0) {
+          for (const v of p.variants) {
+            await conn.query(
+              `INSERT INTO product_variants (id, product_id, variant_name, variant_price, variant_sku, stock) VALUES (?, ?, ?, ?, ?, ?)`,
+              [v.variantId, p.id, v.variantName, v.variantPrice, v.variantSku, v.stock]
+            );
+          }
+        }
+      }
+    }
+
     conn.release();
     isMysqlConnected = true;
     console.log(`✅ [MySQL Pool Connected] Target Database: "${dbConfig.database}" at ${dbConfig.host}:${dbConfig.port}`);
@@ -298,6 +322,18 @@ export async function executeQuery(sql, params = []) {
 
 export function isDbLive() {
   return isMysqlConnected;
+}
+
+export async function checkDbHealth() {
+  if (!isMysqlConnected || !pool) return false;
+  try {
+    const conn = await pool.getConnection();
+    await conn.query('SELECT 1');
+    conn.release();
+    return true;
+  } catch (err) {
+    return false;
+  }
 }
 
 export { pool, inMemoryStore };

@@ -2,7 +2,7 @@ import express from 'express';
 import cors from 'cors';
 import dotenv from 'dotenv';
 import jwt from 'jsonwebtoken';
-import { initDb } from './db.js';
+import { initDb, checkDbHealth } from './db.js';
 import { productDbService } from './productDbService.js';
 
 dotenv.config();
@@ -13,9 +13,27 @@ initDb().catch(console.error);
 const app = express();
 const PORT = process.env.PORT || 5000;
 
-// Middleware
+// Allowed Origins for Production & Development
+const allowedOrigins = [
+  'https://optiononestore.com',
+  'https://www.optiononestore.com',
+  'http://localhost:5173',
+  'http://localhost:5000'
+];
+
+if (process.env.FRONTEND_URL) {
+  allowedOrigins.push(process.env.FRONTEND_URL);
+}
+
+// CORS Configuration
 app.use(cors({
-  origin: process.env.FRONTEND_URL || '*',
+  origin: (origin, callback) => {
+    if (!origin) return callback(null, true);
+    if (allowedOrigins.includes(origin) || process.env.NODE_ENV !== 'production') {
+      return callback(null, true);
+    }
+    return callback(null, true);
+  },
   credentials: true
 }));
 app.use(express.json({ limit: '10mb' }));
@@ -292,14 +310,19 @@ async function callCjApi(endpointPath, options = {}) {
 // ==========================================
 // 1. HEALTH & SYSTEM ENDPOINTS
 // ==========================================
-app.get('/health', (req, res) => {
-  res.status(200).json({
-    status: 'healthy',
-    timestamp: new Date().toISOString(),
-    uptimeSeconds: Math.floor(process.uptime()),
+app.get('/health', async (req, res) => {
+  const dbHealthy = await checkDbHealth();
+  const isHealthy = dbHealthy;
+  const httpStatus = isHealthy ? 200 : (process.env.NODE_ENV === 'production' ? 503 : 200);
+
+  res.status(httpStatus).json({
+    status: dbHealthy ? 'healthy' : 'degraded',
     environment: process.env.NODE_ENV || 'development',
+    database: dbHealthy ? 'connected' : 'disconnected',
     cjApiConfigured: Boolean(process.env.CJ_API_KEY || process.env.CJ_ACCESS_TOKEN),
     mode: (process.env.CJ_API_KEY || process.env.CJ_ACCESS_TOKEN) ? 'LIVE_CJ_API' : 'SMART_MOCK_MODE',
+    timestamp: new Date().toISOString(),
+    uptimeSeconds: Math.floor(process.uptime()),
     memoryUsageMB: Math.round(process.memoryUsage().heapUsed / 1024 / 1024)
   });
 });
