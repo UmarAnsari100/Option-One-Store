@@ -1,30 +1,46 @@
 import mysql from 'mysql2/promise';
 import dotenv from 'dotenv';
+
 dotenv.config();
 
-// MySQL Configuration
+// Resolve host: on Linux / cPanel Passenger, 'localhost' directs mysql2 to connect via
+// Unix domain socket (/tmp/mysql.sock), which fails because cPanel uses /var/lib/mysql/mysql.sock or jailed TCP.
+// Resolving 'localhost' to '127.0.0.1' forces TCP socket connection over port 3306.
+const rawHost = process.env.DB_HOST || '127.0.0.1';
+const host = (rawHost === 'localhost' || !rawHost) ? '127.0.0.1' : rawHost;
+const port = Number(process.env.DB_PORT || 3306);
+const user = process.env.DB_USER || '';
+const password = process.env.DB_PASSWORD || '';
+const database = process.env.DB_NAME || '';
+
+// MySQL Pool Configuration directly using DB_* environment variables
 const dbConfig = {
-  host: process.env.DB_HOST || process.env.MYSQL_HOST || 'localhost',
-  port: Number(process.env.DB_PORT || process.env.MYSQL_PORT || 3306),
-  user: process.env.DB_USER || process.env.MYSQL_USER || 'root',
-  password: process.env.DB_PASSWORD || process.env.MYSQL_PASSWORD || '',
-  database: process.env.DB_NAME || process.env.MYSQL_DATABASE || 'option_one_store',
+  host,
+  port,
+  user,
+  password,
+  database,
   waitForConnections: true,
-  connectionLimit: 15,
-  queueLimit: 0
+  connectionLimit: 10,
+  queueLimit: 0,
+  enableKeepAlive: true,
+  keepAliveInitialDelay: 10000
 };
 
-let pool = null;
+// Safe Startup Log (Never logs password or sensitive credentials)
+console.log('==================================================');
+console.log('Database configuration:');
+console.log(`host=${rawHost}${rawHost === 'localhost' ? ' (resolved to 127.0.0.1 TCP)' : ''}`);
+console.log(`port=${port}`);
+console.log(`database=${database}`);
+console.log(`user=${user}`);
+console.log('password=****** (hidden)');
+console.log('==================================================');
+
+// Create connection pool immediately at module load time
+export const pool = mysql.createPool(dbConfig);
+
 let isMysqlConnected = false;
-
-// Fallback in-memory DB cache if MySQL server is disconnected/unreachable
-let inMemoryStore = {
-  products: [],
-  categories: [],
-  brands: [],
-  orders: [],
-  cj_import_logs: []
-};
 
 // Initial Seed Products
 const seedProducts = [
@@ -110,18 +126,17 @@ const seedProducts = [
   }
 ];
 
-inMemoryStore.products = [...seedProducts];
-
 /**
- * Initialize MySQL Connection Pool and Tables
+ * Initialize MySQL Connection Pool and Tables in existing database
  */
 export async function initDb() {
+  let conn;
   try {
-    // Create Pool directly using cPanel database credentials
-    pool = mysql.createPool(dbConfig);
-    const conn = await pool.getConnection();
+    conn = await pool.getConnection();
+    isMysqlConnected = true;
+    console.log(`✅ [MySQL Pool Connected] Target Database: "${database}" at ${host}:${port}`);
 
-    // Create Normalized MySQL Tables
+    // Create Normalized MySQL Tables inside the existing database
     await conn.query(`
       CREATE TABLE IF NOT EXISTS admins (
         id INT AUTO_INCREMENT PRIMARY KEY,
@@ -259,7 +274,7 @@ export async function initDb() {
     // Auto-seed initial products if products table is empty
     const [countRows] = await conn.query('SELECT COUNT(*) as count FROM products');
     if (countRows && countRows[0].count === 0 && seedProducts.length > 0) {
-      console.log('🌱 [MySQL Init] Products table empty. Inserting seed products...');
+      console.log('🌱 [MySQL Init] Products table empty. Inserting initial seed products...');
       for (const p of seedProducts) {
         await conn.query(
           `INSERT INTO products (
@@ -290,50 +305,69 @@ export async function initDb() {
           }
         }
       }
+      console.log('✅ [MySQL Init] Initial seed products inserted.');
     }
 
-    conn.release();
-    isMysqlConnected = true;
-    console.log(`✅ [MySQL Pool Connected] Target Database: "${dbConfig.database}" at ${dbConfig.host}:${dbConfig.port}`);
     return true;
   } catch (err) {
-    console.warn(`⚠️ [MySQL Connection Warning] Could not connect to MySQL server at ${dbConfig.host}:${dbConfig.port}. Using in-memory fallback layer.`);
-    console.warn(`Details: ${err.message}`);
     isMysqlConnected = false;
+    console.error('❌ [MySQL Connection Diagnostics] Failed to connect to MySQL database:');
+    console.error(`- Error Code:    ${err.code || 'N/A'}`);
+    console.error(`- Error Number:  ${err.errno || 'N/A'}`);
+    console.error(`- SQL State:     ${err.sqlState || 'N/A'}`);
+    if (err.syscall) console.error(`- Syscall:       ${err.syscall}`);
+    if (err.address) console.error(`- Address:       ${err.address}`);
+    if (err.port)    console.error(`- Port:          ${err.port}`);
+    console.error(`- Error Message: ${err.message || 'N/A'}`);
     return false;
+  } finally {
+    if (conn) conn.release();
   }
 }
 
 /**
- * Execute MySQL Query or In-Memory Store Fallback
+ * Execute MySQL Query
  */
 export async function executeQuery(sql, params = []) {
-  if (isMysqlConnected && pool) {
-    try {
-      const [rows] = await pool.execute(sql, params);
-      return rows;
-    } catch (err) {
-      console.error('[MySQL Query Error]:', err);
-      throw err;
-    }
+  try {
+    const [rows] = await pool.execute(sql, params);
+    return rows;
+  } catch (err) {
+    console.error('[MySQL Query Error]:', {
+      code: err.code,
+      errno: err.errno,
+      sqlState: err.sqlState,
+      message: err.message
+    });
+    throw err;
   }
-  return null;
+}
+
+/**
+ * Check live MySQL connection health
+ */
+export async function checkDbHealth() {
+  let conn;
+  try {
+    conn = await pool.getConnection();
+    await conn.query('SELECT 1');
+    isMysqlConnected = true;
+    return true;
+  } catch (err) {
+    isMysqlConnected = false;
+    console.error('[MySQL Health Check Failed]:', {
+      code: err.code,
+      errno: err.errno,
+      sqlState: err.sqlState,
+      message: err.message
+    });
+    return false;
+  } finally {
+    if (conn) conn.release();
+  }
 }
 
 export function isDbLive() {
   return isMysqlConnected;
 }
 
-export async function checkDbHealth() {
-  if (!isMysqlConnected || !pool) return false;
-  try {
-    const conn = await pool.getConnection();
-    await conn.query('SELECT 1');
-    conn.release();
-    return true;
-  } catch (err) {
-    return false;
-  }
-}
-
-export { pool, inMemoryStore };

@@ -1,4 +1,4 @@
-import { executeQuery, isDbLive, inMemoryStore } from './db.js';
+import { executeQuery } from './db.js';
 
 /**
  * Service to execute MySQL database operations for Products, Categories, Brands & Orders
@@ -6,17 +6,6 @@ import { executeQuery, isDbLive, inMemoryStore } from './db.js';
 export const productDbService = {
   // 1. Get All Products
   async getAllProducts(filters = {}) {
-    if (!isDbLive()) {
-      let result = [...inMemoryStore.products];
-      if (filters.status) result = result.filter(p => p.status === filters.status);
-      if (filters.category && filters.category !== 'all') result = result.filter(p => p.category === filters.category);
-      if (filters.search) {
-        const q = filters.search.toLowerCase();
-        result = result.filter(p => p.name.toLowerCase().includes(q) || p.brand.toLowerCase().includes(q) || p.category.toLowerCase().includes(q));
-      }
-      return result;
-    }
-
     let sql = `SELECT * FROM products WHERE 1=1`;
     const params = [];
 
@@ -90,10 +79,6 @@ export const productDbService = {
 
   // 2. Get Product By ID or cjPid
   async getProductById(id) {
-    if (!isDbLive()) {
-      return inMemoryStore.products.find(p => String(p.id) === String(id) || String(p.cjPid) === String(id)) || null;
-    }
-
     const rows = await executeQuery(`SELECT * FROM products WHERE id = ? OR cj_pid = ? LIMIT 1`, [id, id]);
     if (!rows || rows.length === 0) return null;
 
@@ -177,17 +162,6 @@ export const productDbService = {
     const isBestSeller = pData.isBestSeller ? 1 : 0;
     const isNewArrival = pData.isNewArrival ? 1 : 0;
 
-    if (!isDbLive()) {
-      const idx = inMemoryStore.products.findIndex(x => String(x.id) === String(id));
-      const saved = { ...pData, id, cjPid, sku, name, brand, category, price, stock, status };
-      if (idx > -1) {
-        inMemoryStore.products[idx] = saved;
-      } else {
-        inMemoryStore.products.unshift(saved);
-      }
-      return saved;
-    }
-
     const sql = `
       INSERT INTO products (
         id, cj_pid, sku, supplier_sku, name, brand, category, price, compare_price, cost_price,
@@ -235,41 +209,18 @@ export const productDbService = {
 
   // 4. Update Product Status (Publish / Draft)
   async setProductStatus(id, newStatus) {
-    if (!isDbLive()) {
-      const p = inMemoryStore.products.find(x => String(x.id) === String(id) || String(x.cjPid) === String(id));
-      if (p) {
-        p.status = newStatus;
-        return p;
-      }
-      return null;
-    }
-
     await executeQuery(`UPDATE products SET status = ?, updated_at = NOW() WHERE id = ? OR cj_pid = ?`, [newStatus, id, id]);
     return this.getProductById(id);
   },
 
   // 5. Update Inventory
   async updateInventory(id, stockQuantity) {
-    if (!isDbLive()) {
-      const p = inMemoryStore.products.find(x => String(x.id) === String(id) || String(x.cjPid) === String(id));
-      if (p) {
-        p.stock = Number(stockQuantity);
-        return p;
-      }
-      return null;
-    }
-
     await executeQuery(`UPDATE products SET stock = ?, updated_at = NOW() WHERE id = ? OR cj_pid = ?`, [stockQuantity, id, id]);
     return this.getProductById(id);
   },
 
   // 6. Delete Product
   async deleteProduct(id) {
-    if (!isDbLive()) {
-      inMemoryStore.products = inMemoryStore.products.filter(p => String(p.id) !== String(id));
-      return true;
-    }
-
     await executeQuery(`DELETE FROM product_variants WHERE product_id = ?`, [id]);
     await executeQuery(`DELETE FROM product_images WHERE product_id = ?`, [id]);
     await executeQuery(`DELETE FROM products WHERE id = ? OR cj_pid = ?`, [id, id]);
@@ -278,11 +229,6 @@ export const productDbService = {
 
   // 7. Get Categories
   async getCategories() {
-    if (!isDbLive()) {
-      const cats = Array.from(new Set(inMemoryStore.products.map(p => p.category)));
-      return cats.map(c => ({ id: c, name: c.charAt(0).toUpperCase() + c.slice(1), slug: c }));
-    }
-
     const rows = await executeQuery(`SELECT DISTINCT category FROM products WHERE category IS NOT NULL AND category != ''`);
     if (!rows) return [];
     return rows.map(r => ({ id: r.category, name: r.category.charAt(0).toUpperCase() + r.category.slice(1), slug: r.category }));
@@ -290,11 +236,6 @@ export const productDbService = {
 
   // 8. Get Brands
   async getBrands() {
-    if (!isDbLive()) {
-      const bList = Array.from(new Set(inMemoryStore.products.map(p => p.brand)));
-      return bList.map(b => ({ id: b, name: b, slug: b.toLowerCase().replace(/\s+/g, '-') }));
-    }
-
     const rows = await executeQuery(`SELECT DISTINCT brand FROM products WHERE brand IS NOT NULL AND brand != ''`);
     if (!rows) return [];
     return rows.map(r => ({ id: r.brand, name: r.brand, slug: r.brand.toLowerCase().replace(/\s+/g, '-') }));
@@ -304,11 +245,6 @@ export const productDbService = {
   async saveOrder(orderData) {
     const id = orderData.id || orderData.orderId || `ORD-${Date.now()}`;
     const orderNumber = orderData.orderNumber || id;
-
-    if (!isDbLive()) {
-      inMemoryStore.orders.unshift({ ...orderData, id, orderNumber });
-      return { ...orderData, id, orderNumber };
-    }
 
     const sql = `
       INSERT INTO orders (id, order_number, customer_name, customer_email, customer_phone, shipping_address, payment_method, subtotal, discount, total, status, cj_order_id, tracking_number)
@@ -344,10 +280,6 @@ export const productDbService = {
   },
 
   async getOrders() {
-    if (!isDbLive()) {
-      return inMemoryStore.orders;
-    }
-
     const rows = await executeQuery(`SELECT * FROM orders ORDER BY created_at DESC`);
     if (!rows) return [];
     return rows.map(r => ({
@@ -369,3 +301,4 @@ export const productDbService = {
     }));
   }
 };
+
