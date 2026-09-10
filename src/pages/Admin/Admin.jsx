@@ -37,6 +37,7 @@ import {
   ChevronDown,
   X
 } from 'lucide-react';
+import { apiUrl } from '../../config/api';
 import './Admin.css';
 
 const Admin = () => {
@@ -94,7 +95,7 @@ const Admin = () => {
 
   // Fetch Server Health Status on Load
   useEffect(() => {
-    fetch('/health')
+    fetch(apiUrl('/health'))
       .then((res) => res.json())
       .then((data) => setHealthStatus(data))
       .catch(() => setHealthStatus({ status: 'offline', mode: 'CLIENT_FALLBACK' }));

@@ -1,3 +1,5 @@
+import { apiUrl } from '../config/api';
+
 /**
  * BaseRepository - Production Data Access Layer interface for Option One Store.
  * Supports MySQL REST APIs for ProductRepository & OrderRepository
@@ -43,7 +45,7 @@ export class BaseRepository {
   // ----------------------------------------------------
   async fetchApi(url, options = {}) {
     try {
-      const res = await fetch(url, {
+      const res = await fetch(apiUrl(url), {
         headers: {
           'Content-Type': 'application/json',
           ...options.headers

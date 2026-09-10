@@ -7,6 +7,7 @@ import { settingsRepository } from '../repositories/SettingsRepository';
 import { cjSyncService } from '../services/cjSyncService';
 import { cjApi } from '../services/cjApi';
 import { analyticsService } from '../services/analyticsService';
+import { apiUrl } from '../config/api';
 
 export const ShopProvider = ({ children }) => {
   // Production Database States (Loaded live from MySQL REST APIs)
@@ -276,7 +277,7 @@ export const ShopProvider = ({ children }) => {
   // Admin Auth Handlers
   const loginAdmin = async (email, password) => {
     try {
-      const res = await fetch('/api/auth/admin-login', {
+      const res = await fetch(apiUrl('/api/auth/admin-login'), {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email, password })
@@ -387,7 +388,7 @@ export const ShopProvider = ({ children }) => {
     const savedOrder = await orderRepository.saveOrder(orderData);
     await refreshProducts();
     await refreshOrders();
-    
+
     // Decrement local stock for each item
     cart.forEach((item) => {
       const p = allProducts.find((prod) => String(prod.id) === String(item.product.id));

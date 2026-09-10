@@ -1,3 +1,5 @@
+import { apiUrl } from '../config/api';
+
 /**
  * CJ Dropshipping Client API Service Module
  * Handles client-to-proxy calls (/api/cj/*), caching, exponential backoff retries, and error logging.
@@ -15,7 +17,7 @@ class CjApiService {
    */
   async fetchWithRetry(url, options = {}, retries = 3, backoff = 500) {
     try {
-      const response = await fetch(url, options);
+      const response = await fetch(apiUrl(url), options);
       if (!response.ok) {
         if (response.status === 429 && retries > 0) {
           await new Promise((resolve) => setTimeout(resolve, backoff));
