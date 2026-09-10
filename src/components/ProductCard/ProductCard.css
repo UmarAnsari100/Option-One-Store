@@ -326,8 +326,19 @@
 }
 
 @media (max-width: 576px) {
+  .product-info {
+    padding: 0.85rem 0.75rem 1rem;
+    gap: 0.25rem;
+  }
+
+  .product-name {
+    font-size: 0.88rem;
+  }
+
   .product-actions {
     grid-template-columns: 1fr;
+    padding: 0.65rem 0.75rem 0.85rem;
+    gap: 0.5rem;
   }
 
   .quick-view {
@@ -337,5 +348,9 @@
 
   .action-btn {
     width: 100%;
+    height: 38px;
+    font-size: 0.72rem;
+    letter-spacing: 0.04em;
+    padding: 0 0.5rem;
   }
 }

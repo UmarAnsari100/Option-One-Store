@@ -499,7 +499,7 @@
   }
 
   .shop-products-grid {
-    grid-template-columns: 1fr;
+    grid-template-columns: repeat(2, 1fr);
     gap: 1.5rem;
   }
 }
@@ -507,6 +507,11 @@
 @media (max-width: 768px) {
   .shop-sidebar {
     width: 100%;
+  }
+
+  .shop-products-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 1rem;
   }
 
   .shop-toolbar {

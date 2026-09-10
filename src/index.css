@@ -58,10 +58,15 @@ body {
   overflow-x: hidden;
   -webkit-font-smoothing: antialiased;
   min-width: 0;
+  width: 100%;
+  max-width: 100%;
 }
 
 html {
   min-width: 0;
+  width: 100%;
+  max-width: 100%;
+  overflow-x: hidden;
 }
 
 img, picture, video, canvas, svg {
@@ -77,9 +82,9 @@ h1, h2, h3, h4, h5, h6 {
   line-height: 1.2;
 }
 
-h1 { font-size: clamp(2.5rem, 6vw, 4.5rem); }
-h2 { font-size: clamp(1.75rem, 4vw, 2.75rem); }
-h3 { font-size: clamp(1.35rem, 3vw, 1.85rem); }
+h1 { font-size: clamp(2rem, 5vw, 4rem); }
+h2 { font-size: clamp(1.5rem, 3.5vw, 2.5rem); }
+h3 { font-size: clamp(1.2rem, 2.5vw, 1.75rem); }
 
 a {
   text-decoration: none;
@@ -95,9 +100,10 @@ ul {
 
 /* Utilities */
 .container {
+  width: 100%;
   max-width: 1400px;
   margin: 0 auto;
-  padding: 0 2rem;
+  padding: 0 clamp(1rem, 3vw, 2rem);
 }
 
 .text-center { text-align: center; }
@@ -163,10 +169,7 @@ ul {
 
 /* Responsive adjustments */
 @media (max-width: 768px) {
-  h1 { font-size: 2.5rem; }
-  h2 { font-size: 2rem; }
   .section-padding { padding: var(--spacing-lg) 0; }
-  .container { padding: 0 1.5rem; }
 }
 
 @media (max-width: 480px) {

@@ -116,7 +116,17 @@
 }
 
 @media (max-width: 768px) {
+  .collection-row,
+  .collection-row.reverse {
+    gap: 2rem;
+    margin-bottom: 4rem;
+  }
+
   .collection-title {
-    font-size: 2.25rem;
+    font-size: clamp(1.6rem, 5vw, 2.1rem);
+  }
+
+  .collection-desc {
+    margin-bottom: 1.75rem;
   }
 }

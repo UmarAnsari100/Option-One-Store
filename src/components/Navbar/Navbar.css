@@ -5,7 +5,7 @@
   width: 100%;
   z-index: 1000;
   transition: padding 0.5s cubic-bezier(0.22, 1, 0.36, 1), background-color 0.5s cubic-bezier(0.22, 1, 0.36, 1), border-color 0.5s cubic-bezier(0.22, 1, 0.36, 1);
-  padding: 1.8rem 0;
+  padding: clamp(0.85rem, 1.6vh, 1.25rem) 0;
   background: transparent;
   border-bottom: 1px solid transparent;
 }
@@ -14,15 +14,16 @@
   background: rgba(244, 242, 239, 0.85);
   backdrop-filter: blur(20px);
   -webkit-backdrop-filter: blur(20px);
-  padding: 1rem 0;
+  padding: clamp(0.5rem, 1vh, 0.85rem) 0;
   box-shadow: 0 4px 30px rgba(0, 0, 0, 0.02);
   border-bottom: 1px solid rgba(26, 26, 26, 0.05);
 }
 
 .navbar-container {
+  width: 100%;
   max-width: 1400px;
   margin: 0 auto;
-  padding: 0 clamp(1.5rem, 4vw, 3rem);
+  padding: 0 clamp(1rem, 3vw, 2.5rem);
   display: flex;
   justify-content: space-between;
   align-items: center;
@@ -573,11 +574,11 @@
   }
 
   .navbar {
-    padding: 1.2rem 0;
+    padding: 0.95rem 0;
   }
 
   .navbar.scrolled {
-    padding: 0.9rem 0;
+    padding: 0.75rem 0;
   }
 
   .hamburger-btn {
