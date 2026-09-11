@@ -55,8 +55,16 @@ const Admin = () => {
     importCjProductToDraft,
     restoreProductVersion,
     deleteProduct,
-    showToast
+    showToast,
+    refreshAdminProducts
   } = useContext(ShopContext);
+
+  // Sync complete catalog (drafts + published) from MySQL when Admin page is active
+  useEffect(() => {
+    if (adminToken && refreshAdminProducts) {
+      refreshAdminProducts();
+    }
+  }, [adminToken, refreshAdminProducts, activeTab]);
 
   // Tab State: 'overview', 'sync', 'drafts', 'published', 'orders', 'backup', 'theme', 'settings'
   const [activeTab, setActiveTab] = useState('overview');

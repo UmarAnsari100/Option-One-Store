@@ -12,6 +12,7 @@ import { apiUrl } from '../config/api';
 export const ShopProvider = ({ children }) => {
   // Production Database States (Loaded live from MySQL REST APIs)
   const [allProducts, setAllProducts] = useState([]);
+  const [publishedProducts, setPublishedProducts] = useState([]);
   const [orders, setOrders] = useState([]);
   const [themeSettings, setThemeSettings] = useState(() => settingsRepository.getSettings());
 
@@ -112,16 +113,24 @@ export const ShopProvider = ({ children }) => {
     }
   }, [customerUser]);
 
-  // Derived Public Products (Strictly status === 'published')
-  const publishedProducts = allProducts.filter((p) => p.status === 'published');
-
-  // Async MySQL Data Fetch Helpers
+  // Async MySQL Data Fetch Helpers:
+  // 1. Public Product Refresh: strictly fetches published products for public storefront
   const refreshProducts = useCallback(async () => {
     try {
       const prods = await productRepository.getPublished();
+      setPublishedProducts(prods || []);
+    } catch (e) {
+      console.error('[ShopProvider Error] Failed to refresh published products from MySQL:', e);
+    }
+  }, []);
+
+  // 2. Admin Product Refresh: fetches complete catalog (draft, published, etc.) for Admin Dashboard
+  const refreshAdminProducts = useCallback(async () => {
+    try {
+      const prods = await productRepository.getAllProducts();
       setAllProducts(prods || []);
     } catch (e) {
-      console.error('[ShopProvider Error] Failed to refresh products from MySQL:', e);
+      console.error('[ShopProvider Error] Failed to refresh all admin products from MySQL:', e);
     }
   }, []);
 
@@ -137,7 +146,10 @@ export const ShopProvider = ({ children }) => {
   useEffect(() => {
     refreshProducts();
     refreshOrders();
-  }, [refreshProducts, refreshOrders]);
+    if (adminToken) {
+      refreshAdminProducts();
+    }
+  }, [refreshProducts, refreshOrders, refreshAdminProducts, adminToken]);
 
   const showToast = (message, type = 'success') => {
     const id = Date.now();
@@ -286,6 +298,7 @@ export const ShopProvider = ({ children }) => {
       if (data.success) {
         setAdminToken(data.token);
         setAdminUser(data.user);
+        await refreshAdminProducts();
         showToast(`Welcome back, ${data.user.name}!`);
         return { success: true };
       } else {
@@ -299,6 +312,7 @@ export const ShopProvider = ({ children }) => {
         const dummyUser = { email: 'admin@optiononestore.com', name: 'Maison Admin', role: 'Super Admin' };
         setAdminToken(dummyToken);
         setAdminUser(dummyUser);
+        await refreshAdminProducts();
         showToast(`Welcome back, Administrator!`);
         return { success: true };
       }
@@ -310,6 +324,7 @@ export const ShopProvider = ({ children }) => {
   const logoutAdmin = () => {
     setAdminToken(null);
     setAdminUser(null);
+    setAllProducts([]);
     showToast('Admin logged out safely.');
   };
 
@@ -348,6 +363,7 @@ export const ShopProvider = ({ children }) => {
   // Product Admin Operations (Workflow: Draft -> Review -> Approved -> Published)
   const saveProduct = async (productData) => {
     const saved = await productRepository.saveProduct(productData);
+    await refreshAdminProducts();
     await refreshProducts();
     showToast(`Saved product "${saved?.name || 'Item'}" to MySQL database.`);
     return saved;
@@ -355,6 +371,7 @@ export const ShopProvider = ({ children }) => {
 
   const setProductStatus = async (productId, newStatus) => {
     const updated = await productRepository.setProductStatus(productId, newStatus);
+    await refreshAdminProducts();
     await refreshProducts();
     showToast(`Updated product status to "${newStatus}" in MySQL`);
     return updated;
@@ -363,9 +380,7 @@ export const ShopProvider = ({ children }) => {
   const importCjProductToDraft = async (cjProduct, marginPercent = 30) => {
     console.log('[Import Clicked] Initiating CJ product import pipeline');
     const draft = await cjSyncService.importCjProduct(cjProduct, marginPercent);
-    const updatedProducts = await productRepository.getAllProducts();
-    setAllProducts(updatedProducts || []);
-    console.log(`[Products Count After Insert]: ${updatedProducts?.length || 0}`);
+    await refreshAdminProducts();
     if (draft) {
       showToast(`Imported "${draft.name}" as DRAFT into MySQL database.`);
     }
@@ -373,12 +388,14 @@ export const ShopProvider = ({ children }) => {
   };
 
   const restoreProductVersion = async (productId, versionId) => {
+    await refreshAdminProducts();
     await refreshProducts();
     return null;
   };
 
   const deleteProduct = async (productId) => {
     await productRepository.deleteProduct(productId);
+    await refreshAdminProducts();
     await refreshProducts();
     showToast('Product deleted from MySQL database');
   };
@@ -438,6 +455,8 @@ export const ShopProvider = ({ children }) => {
         products: publishedProducts,
         // Full Product Catalog for Admin Management
         allProducts,
+        refreshProducts,
+        refreshAdminProducts,
         orders,
         themeSettings,
         setThemeSettings: (s) => setThemeSettings(settingsRepository.saveSettings(s)),
