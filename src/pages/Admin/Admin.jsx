@@ -59,15 +59,15 @@ const Admin = () => {
     refreshAdminProducts
   } = useContext(ShopContext);
 
+  // Tab State: 'overview', 'sync', 'drafts', 'published', 'orders', 'backup', 'theme', 'settings'
+  const [activeTab, setActiveTab] = useState('overview');
+
   // Sync complete catalog (drafts + published) from MySQL when Admin page is active
   useEffect(() => {
     if (adminToken && refreshAdminProducts) {
       refreshAdminProducts();
     }
   }, [adminToken, refreshAdminProducts, activeTab]);
-
-  // Tab State: 'overview', 'sync', 'drafts', 'published', 'orders', 'backup', 'theme', 'settings'
-  const [activeTab, setActiveTab] = useState('overview');
 
   // Auth Inputs
   const [loginEmail, setLoginEmail] = useState('');
@@ -110,8 +110,8 @@ const Admin = () => {
   }, []);
 
   // Filtered Product Lists
-  const draftProducts = allProducts.filter((p) => p.status !== 'published');
-  const publishedProducts = allProducts.filter((p) => p.status === 'published');
+  const draftProducts = (allProducts || []).filter((p) => p.status !== 'published');
+  const publishedProducts = (allProducts || []).filter((p) => p.status === 'published');
 
   // Dynamic Tab Meta for Page Header
   const getTabMeta = () => {
