@@ -28,12 +28,11 @@
   display: flex;
   flex-direction: column;
   height: 100%;
-  aspect-ratio: 4 / 5.5;
 }
 
 .skeleton-thumb {
   width: 100%;
-  aspect-ratio: 4 / 5;
+  aspect-ratio: 1 / 1;
   background-color: var(--color-neutral);
 }
 
