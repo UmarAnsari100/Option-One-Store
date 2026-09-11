@@ -10,6 +10,7 @@ import {
   Lock,
   ArrowRight
 } from 'lucide-react';
+import SocialFeed from '../SocialFeed/SocialFeed';
 import './Footer.css';
 
 // Inline SVGs to guarantee build stability across Lucide versions
@@ -45,44 +46,10 @@ const Footer = () => {
     }
   };
 
-  const lifestyleGallery = [
-    { id: 1, img: 'https://img.drz.lazcdn.com/static/pk/p/bfb18a56816da1d1bd822744707ab910.jpg_400x400q75.avif', name: 'Maison Chronometers', category: 'watches', sizeClass: 'grid-wide' },
-    { id: 2, img: 'https://img.drz.lazcdn.com/static/pk/p/da2b0a487a9e2288602dea559feb24c4.jpg_400x400q75.avif', name: 'Atelier Bags', category: 'bags', sizeClass: 'grid-tall' },
-    { id: 3, img: 'https://img.drz.lazcdn.com/g/kf/S04eeb9c30f874373915dbb9c96e56af7C.jpg_400x400q75.avif', name: 'Refined Jewelry', category: 'jewelry', sizeClass: 'grid-small' },
-    { id: 4, img: 'https://img.drz.lazcdn.com/static/pk/p/37042bab3e8ae19ac73768377283b1b4.jpg_400x400q75.avif', name: 'Audio Essentials', category: 'audio', sizeClass: 'grid-small' },
-    { id: 5, img: 'https://img.drz.lazcdn.com/static/pk/p/ecaeefdce1b44e327ce7141b0e40434b.jpg_400x400q75.avif', name: 'Premium Electronics', category: 'electronics', sizeClass: 'grid-wide' },
-    { id: 6, img: 'https://img.drz.lazcdn.com/static/pk/p/e297e57509692948907c22e2972dc56c.jpg_400x400q75.avif', name: 'Automotive Upgrades', category: 'automotive', sizeClass: 'grid-small' },
-    { id: 7, img: 'https://img.drz.lazcdn.com/static/pk/p/be750acc45745acc0ea1643acda62dcf.jpg_400x400q75.avif', name: 'Atelier Timepieces', category: 'watches', sizeClass: 'grid-small' }
-  ];
-
   return (
     <footer className="footer-section">
-      {/* Luxury Lifestyle Gallery */}
-      <div className="footer-lifestyle-gallery">
-        <div className="lifestyle-gallery-header text-center">
-          <span className="lifestyle-subtitle">CURATED COLLECTION</span>
-          <h3>Experience the Option One Lifestyle</h3>
-          <p>Discover carefully selected luxury pieces designed for timeless elegance and modern living.</p>
-        </div>
-
-        <div className="lifestyle-grid">
-          {lifestyleGallery.map((item) => (
-            <Link
-              to={`/shop?category=${item.category}`}
-              className={`lifestyle-grid-item ${item.sizeClass}`}
-              key={item.id}
-            >
-              <img src={item.img} alt={item.name} className="lifestyle-img" />
-              <div className="lifestyle-overlay">
-                <div className="lifestyle-overlay-content">
-                  <h4>{item.name}</h4>
-                  <span className="explore-link-text">Explore Collection →</span>
-                </div>
-              </div>
-            </Link>
-          ))}
-        </div>
-      </div>
+      {/* Instagram Curated Lifestyle Feed */}
+      <SocialFeed />
 
       <div className="container">
         {/* Trust Badges */}

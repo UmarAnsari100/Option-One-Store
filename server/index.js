@@ -4,6 +4,7 @@ import dotenv from 'dotenv';
 import jwt from 'jsonwebtoken';
 import { initDb, checkDbHealth } from './db.js';
 import { productDbService } from './productDbService.js';
+import { instagramService } from './services/instagramService.js';
 
 dotenv.config();
 
@@ -853,6 +854,23 @@ app.post('/api/cj/sync', async (req, res) => {
     });
   } catch (err) {
     res.status(400).json({ success: false, message: 'CJ Sync failed: ' + err.message });
+  }
+});
+
+// 12. GET /api/social/instagram (Meta Graph API Instagram Feed with In-Memory Cache)
+app.get('/api/social/instagram', async (req, res) => {
+  try {
+    const result = await instagramService.getFeed();
+    res.json({ success: true, ...result });
+  } catch (err) {
+    console.error('[Instagram API Route Error]:', err);
+    const fallback = instagramService.getFallbackFeed();
+    res.json({
+      success: false,
+      message: err.message,
+      data: fallback,
+      source: 'fallback'
+    });
   }
 });
 
