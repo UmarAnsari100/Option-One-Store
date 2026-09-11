@@ -1,5 +1,5 @@
 import React, { useState, useMemo, useEffect } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useSearchParams } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
   Search, 
@@ -10,7 +10,9 @@ import {
   SlidersHorizontal,
   ChevronRight,
   TrendingUp,
-  Star
+  Star,
+  X,
+  RotateCcw
 } from 'lucide-react';
 import SEO from '../../components/SEO/SEO';
 import { seoService } from '../../services/seoService';
@@ -160,12 +162,31 @@ const CATEGORIES_DATA = [
 const alphabets = ['All', ...'ABCDEFGHIJKLMNOPQRSTUVWXYZ'.split('')];
 
 const Brands = () => {
-  const [searchQuery, setSearchQuery] = useState('');
-  const [selectedCategory, setSelectedCategory] = useState('All');
-  const [selectedOrigin, setSelectedOrigin] = useState('All');
-  const [selectedLetter, setSelectedLetter] = useState('All');
+  const [searchParams, setSearchParams] = useSearchParams();
+
+  const [searchQuery, setSearchQuery] = useState(() => searchParams.get('search') || '');
+  const [selectedCategory, setSelectedCategory] = useState(() => {
+    const cat = searchParams.get('category');
+    if (!cat || cat.toLowerCase() === 'all') return 'All';
+    return cat.charAt(0).toUpperCase() + cat.slice(1);
+  });
+  const [selectedOrigin, setSelectedOrigin] = useState(() => searchParams.get('origin') || 'All');
+  const [selectedLetter, setSelectedLetter] = useState(() => searchParams.get('letter') || 'All');
   const [sortBy, setSortBy] = useState('popular');
   const [visibleBrandsCount, setVisibleBrandsCount] = useState(8);
+
+  // Sync state when URL searchParams changes
+  useEffect(() => {
+    const s = searchParams.get('search') || '';
+    const c = searchParams.get('category') || 'All';
+    const o = searchParams.get('origin') || 'All';
+    const l = searchParams.get('letter') || 'All';
+
+    setSearchQuery(s);
+    setSelectedCategory(c.toLowerCase() === 'all' ? 'All' : c.charAt(0).toUpperCase() + c.slice(1));
+    setSelectedOrigin(o);
+    setSelectedLetter(l);
+  }, [searchParams]);
 
   // Scroll to top on mount
   useEffect(() => {
@@ -177,32 +198,55 @@ const Brands = () => {
     let result = [...BRANDS_DATA];
 
     if (searchQuery.trim() !== '') {
+      const q = searchQuery.trim().toLowerCase();
       result = result.filter(brand => 
-        brand.name.toLowerCase().includes(searchQuery.toLowerCase()) || 
-        brand.category.toLowerCase().includes(searchQuery.toLowerCase())
+        (brand.name || '').toLowerCase().includes(q) || 
+        (brand.category || '').toLowerCase().includes(q) ||
+        (brand.description || '').toLowerCase().includes(q)
       );
     }
 
     if (selectedCategory !== 'All') {
-      result = result.filter(brand => brand.category === selectedCategory);
+      result = result.filter(brand => 
+        (brand.category || '').trim().toLowerCase() === selectedCategory.trim().toLowerCase()
+      );
     }
 
     if (selectedOrigin !== 'All') {
-      result = result.filter(brand => brand.origin === selectedOrigin);
+      result = result.filter(brand => 
+        (brand.origin || '').trim().toLowerCase() === selectedOrigin.trim().toLowerCase()
+      );
     }
 
     if (selectedLetter !== 'All') {
-      result = result.filter(brand => brand.name.startsWith(selectedLetter));
+      result = result.filter(brand => 
+        (brand.name || '').trim().toUpperCase().startsWith(selectedLetter.toUpperCase())
+      );
     }
 
     if (sortBy === 'popular') {
       result.sort((a, b) => b.popularity - a.popularity);
     } else if (sortBy === 'az') {
-      result.sort((a, b) => a.name.localeCompare(b.name));
+      result.sort((a, b) => (a.name || '').localeCompare(b.name || ''));
     }
 
     return result;
   }, [searchQuery, selectedCategory, selectedOrigin, selectedLetter, sortBy]);
+
+  const hasActiveFilters = Boolean(
+    searchQuery.trim() ||
+    selectedCategory !== 'All' ||
+    selectedOrigin !== 'All' ||
+    selectedLetter !== 'All'
+  );
+
+  const handleResetFilters = () => {
+    setSearchQuery('');
+    setSelectedCategory('All');
+    setSelectedOrigin('All');
+    setSelectedLetter('All');
+    setSearchParams({});
+  };
 
   const uniqueOrigins = useMemo(() => {
     const list = BRANDS_DATA.map(b => b.origin);
@@ -263,8 +307,34 @@ const Brands = () => {
                 type="text" 
                 placeholder="Search designer houses..." 
                 value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
+                onChange={(e) => {
+                  const val = e.target.value;
+                  setSearchQuery(val);
+                  setSearchParams(prev => {
+                    const next = new URLSearchParams(prev);
+                    if (val.trim()) next.set('search', val.trim());
+                    else next.delete('search');
+                    return next;
+                  });
+                }}
               />
+              {searchQuery && (
+                <button
+                  type="button"
+                  className="clear-brand-search-btn"
+                  onClick={() => {
+                    setSearchQuery('');
+                    setSearchParams(prev => {
+                      const next = new URLSearchParams(prev);
+                      next.delete('search');
+                      return next;
+                    });
+                  }}
+                  aria-label="Clear brand search"
+                >
+                  <X size={14} />
+                </button>
+              )}
             </div>
 
             {/* Selector Fields */}
@@ -273,7 +343,16 @@ const Brands = () => {
                 <SlidersHorizontal size={14} className="select-icon" />
                 <select 
                   value={selectedCategory} 
-                  onChange={(e) => setSelectedCategory(e.target.value)}
+                  onChange={(e) => {
+                    const val = e.target.value;
+                    setSelectedCategory(val);
+                    setSearchParams(prev => {
+                      const next = new URLSearchParams(prev);
+                      if (val !== 'All') next.set('category', val.toLowerCase());
+                      else next.delete('category');
+                      return next;
+                    });
+                  }}
                   aria-label="Filter by Category"
                 >
                   <option value="All">All Categories</option>
@@ -287,7 +366,16 @@ const Brands = () => {
                 <Globe size={14} className="select-icon" />
                 <select 
                   value={selectedOrigin} 
-                  onChange={(e) => setSelectedOrigin(e.target.value)}
+                  onChange={(e) => {
+                    const val = e.target.value;
+                    setSelectedOrigin(val);
+                    setSearchParams(prev => {
+                      const next = new URLSearchParams(prev);
+                      if (val !== 'All') next.set('origin', val);
+                      else next.delete('origin');
+                      return next;
+                    });
+                  }}
                   aria-label="Filter by Origin"
                 >
                   <option value="All">All Origins</option>
@@ -320,13 +408,106 @@ const Brands = () => {
                 <button
                   key={letter}
                   className={`alphabet-btn ${selectedLetter === letter ? 'active' : ''}`}
-                  onClick={() => setSelectedLetter(letter)}
+                  onClick={() => {
+                    setSelectedLetter(letter);
+                    setSearchParams(prev => {
+                      const next = new URLSearchParams(prev);
+                      if (letter !== 'All') next.set('letter', letter);
+                      else next.delete('letter');
+                      return next;
+                    });
+                  }}
                 >
                   {letter}
                 </button>
               ))}
             </div>
           </div>
+
+          {/* Active Filter Chips Bar */}
+          {hasActiveFilters && (
+            <div className="brands-active-filters-bar">
+              <span className="brands-active-label">Active Filters:</span>
+              <div className="brands-chips-wrap">
+                {searchQuery.trim() && (
+                  <button
+                    type="button"
+                    className="brands-filter-chip"
+                    onClick={() => {
+                      setSearchQuery('');
+                      setSearchParams(prev => {
+                        const next = new URLSearchParams(prev);
+                        next.delete('search');
+                        return next;
+                      });
+                    }}
+                  >
+                    <span>"{searchQuery}"</span>
+                    <X size={12} />
+                  </button>
+                )}
+                {selectedCategory !== 'All' && (
+                  <button
+                    type="button"
+                    className="brands-filter-chip"
+                    onClick={() => {
+                      setSelectedCategory('All');
+                      setSearchParams(prev => {
+                        const next = new URLSearchParams(prev);
+                        next.delete('category');
+                        return next;
+                      });
+                    }}
+                  >
+                    <span>{selectedCategory}</span>
+                    <X size={12} />
+                  </button>
+                )}
+                {selectedOrigin !== 'All' && (
+                  <button
+                    type="button"
+                    className="brands-filter-chip"
+                    onClick={() => {
+                      setSelectedOrigin('All');
+                      setSearchParams(prev => {
+                        const next = new URLSearchParams(prev);
+                        next.delete('origin');
+                        return next;
+                      });
+                    }}
+                  >
+                    <span>Origin: {selectedOrigin}</span>
+                    <X size={12} />
+                  </button>
+                )}
+                {selectedLetter !== 'All' && (
+                  <button
+                    type="button"
+                    className="brands-filter-chip"
+                    onClick={() => {
+                      setSelectedLetter('All');
+                      setSearchParams(prev => {
+                        const next = new URLSearchParams(prev);
+                        next.delete('letter');
+                        return next;
+                      });
+                    }}
+                  >
+                    <span>Letter: {selectedLetter}</span>
+                    <X size={12} />
+                  </button>
+                )}
+                <button
+                  type="button"
+                  className="brands-clear-all-btn"
+                  onClick={handleResetFilters}
+                >
+                  <RotateCcw size={12} />
+                  <span>Reset All</span>
+                </button>
+              </div>
+            </div>
+          )}
         </div>
       </section>
 
@@ -335,7 +516,7 @@ const Brands = () => {
         <div className="container">
           <div className="section-header-editorial">
             <h2>Maison Showcase</h2>
-            <p>Direct collections from the world’s elite creative ateliers.</p>
+            <p>Showing {filteredBrands.length} of {BRANDS_DATA.length} luxury houses.</p>
           </div>
 
           <div className="brands-cards-grid">
@@ -373,7 +554,7 @@ const Brands = () => {
                     
                     <div className="brand-card-footer">
                       <span className="products-available-label">{brand.productsCount} Available Items</span>
-                      <Link to={`/shop?brand=${brand.name}`} className="brand-explore-btn">
+                      <Link to={`/shop?brand=${encodeURIComponent(brand.name)}`} className="brand-explore-btn">
                         <span>Explore</span>
                         <ChevronRight size={14} className="arrow-icon" />
                       </Link>
@@ -396,12 +577,7 @@ const Brands = () => {
               <p>We couldn't find any partner brands matching your search filter options.</p>
               <button 
                 className="reset-filters-btn"
-                onClick={() => {
-                  setSearchQuery('');
-                  setSelectedCategory('All');
-                  setSelectedOrigin('All');
-                  setSelectedLetter('All');
-                }}
+                onClick={handleResetFilters}
               >
                 Reset Search Filters
               </button>
