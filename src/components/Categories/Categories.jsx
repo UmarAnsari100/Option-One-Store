@@ -7,21 +7,21 @@ const categories = [
     id: 1,
     title: 'Watches',
     subtitle: 'TIMELESS HERITAGE',
-    image: 'https://img.drz.lazcdn.com/static/pk/p/bfb18a56816da1d1bd822744707ab910.jpg_400x400q75.avif',
+    image: 'https://cf.cjdropshipping.com/cb01749d-a005-45b8-8a8f-ef5fc3d0417f.jpg',
     link: '/shop?category=watches'
   },
   {
     id: 2,
     title: 'Bags',
     subtitle: 'MODERN ELEGANCE',
-    image: 'https://img.drz.lazcdn.com/static/pk/p/da2b0a487a9e2288602dea559feb24c4.jpg_400x400q75.avif',
+    image: 'https://oss-cf.cjdropshipping.com/product/2026/09/11/09/48e5a0fc-48f0-4469-9c0e-92923fb33f99.jpg',
     link: '/shop?category=bags'
   },
   {
     id: 3,
     title: 'Jewelry',
     subtitle: 'REFINED BEAUTY',
-    image: 'https://img.drz.lazcdn.com/g/kf/S04eeb9c30f874373915dbb9c96e56af7C.jpg_400x400q75.avif',
+    image: 'https://cf.cjdropshipping.com/ea5b4ee6-eff3-485f-98ac-d14a7c45a37e.jpg',
     link: '/shop?category=jewelry'
   }
 ];

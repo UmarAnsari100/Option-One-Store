@@ -77,6 +77,14 @@ const isCategoryMatch = (productCat, selectedCat) => {
     return true;
   }
 
+  // Suffix/Synonym matching for luxury categories
+  if (sStem === 'bag' || s === 'bags') {
+    return p.includes('bag') || p.includes('tote') || p.includes('handbag') || p.includes('purse');
+  }
+  if (sStem === 'jewelr' || sStem === 'jewelry' || s === 'jewelry') {
+    return p.includes('jewel') || p.includes('necklace') || p.includes('pendant') || p.includes('charm') || p.includes('bracelet');
+  }
+
   return false;
 };
 

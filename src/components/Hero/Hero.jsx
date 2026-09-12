@@ -159,10 +159,10 @@ const Hero = () => {
               >
                 <div className="card-badge">NEW ARRIVAL</div>
                 <div className="card-product-img">
-                  <img src="https://img.drz.lazcdn.com/static/pk/p/bfb18a56816da1d1bd822744707ab910.jpg_400x400q75.avif" alt="OUBAOER Watch" />
+                  <img src="https://cf.cjdropshipping.com/cb01749d-a005-45b8-8a8f-ef5fc3d0417f.jpg" alt="Luminous Steel Quartz Watch" />
                 </div>
                 <div className="card-meta">
-                  <h5>OUBAOER Watch</h5>
+                  <h5>Luminous Steel Watch</h5>
                   <span className="card-price">Rs 12000.00</span>
                   <div className="card-rating">
                     {[...Array(5)].map((_, i) => (
@@ -182,17 +182,17 @@ const Hero = () => {
               >
                 <button
                   className={`card-icon-btn ${isHandbagInWishlist ? 'active' : ''}`}
-                  onClick={() => toggleWishlist({ id: 3, name: 'Women PU Leather Handbag', price: 1150.00 })}
+                  onClick={() => toggleWishlist({ id: 3, name: 'Retro Single-Shoulder Bag', price: 4500.00 })}
                   aria-label="Add to wishlist"
                 >
                   <Heart size={11} fill={isHandbagInWishlist ? "var(--color-accent)" : "none"} color={isHandbagInWishlist ? "var(--color-accent)" : "currentColor"} />
                 </button>
                 <div className="card-product-img">
-                  <img src="https://img.drz.lazcdn.com/static/pk/p/da2b0a487a9e2288602dea559feb24c4.jpg_400x400q75.avif" alt="Women Handbag" />
+                  <img src="https://oss-cf.cjdropshipping.com/product/2026/09/11/09/48e5a0fc-48f0-4469-9c0e-92923fb33f99.jpg" alt="Retro Single-Shoulder Bag" />
                 </div>
                 <div className="card-meta">
-                  <h5>Women Handbag</h5>
-                  <span className="card-price">Rs 1150.00</span>
+                  <h5>Retro Shoulder Bag</h5>
+                  <span className="card-price">Rs 4500.00</span>
                 </div>
               </motion.div>
 
@@ -212,11 +212,11 @@ const Hero = () => {
                   <ShoppingBag size={11} />
                 </button>
                 <div className="card-product-img">
-                  <img src="https://img.drz.lazcdn.com/g/kf/S04eeb9c30f874373915dbb9c96e56af7C.jpg_400x400q75.avif" alt="Zircon Bracelet" />
+                  <img src="https://cf.cjdropshipping.com/ea5b4ee6-eff3-485f-98ac-d14a7c45a37e.jpg" alt="Fashion Bracelet Set" />
                 </div>
                 <div className="card-meta">
-                  <h5>Zircon Bracelet</h5>
-                  <span className="card-price">Rs 880.00</span>
+                  <h5>Fashion Bracelet Set</h5>
+                  <span className="card-price">Rs 1850.00</span>
                 </div>
               </motion.div>
             </div>

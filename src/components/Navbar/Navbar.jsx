@@ -238,7 +238,7 @@ const Navbar = () => {
                             <h4 className="mega-title">Featured Collection</h4>
                             <div className="mega-featured-card">
                               <img
-                                src="https://img.drz.lazcdn.com/static/pk/p/bfb18a56816da1d1bd822744707ab910.jpg_400x400q75.avif"
+                                src="https://cf.cjdropshipping.com/cb01749d-a005-45b8-8a8f-ef5fc3d0417f.jpg"
                                 alt="Executive Collection"
                                 className="mega-featured-img"
                               />
@@ -258,8 +258,8 @@ const Navbar = () => {
                             <h4 className="mega-title">Product Spotlight</h4>
                             <div className="mega-featured-card">
                               <img
-                                src="https://img.drz.lazcdn.com/static/pk/p/be750acc45745acc0ea1643acda62dcf.jpg_400x400q75.avif"
-                                alt="HAIQIN Tourbillon"
+                                src="https://oss-cf.cjdropshipping.com/product/2025/06/12/09/f5e61d4d-7f31-4bfa-a88b-7edbc67b55bf_trans.jpeg"
+                                alt="NAVIFORCE Quartz Watch"
                                 className="mega-featured-img"
                               />
                               <div className="mega-featured-overlay">
