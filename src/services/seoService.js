@@ -29,7 +29,7 @@ export const seoService = {
         'https://www.facebook.com/p/Option-One-Store-100084635444046/',
         'https://www.tiktok.com/@khan_ag',
         'https://x.com/AG95a4',
-        'https://www.youtube.com/@agkhan12168'
+        'https://www.youtube.com/@abdulghaffar76'
       ],
       'contactPoint': {
         '@type': 'ContactPoint',

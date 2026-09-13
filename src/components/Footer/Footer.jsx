@@ -113,7 +113,7 @@ const Footer = () => {
               <a href="https://www.facebook.com/p/Option-One-Store-100084635444046/" target="_blank" rel="noopener noreferrer" className="social-link" aria-label="Facebook"><Facebook size={18} /></a>
               <a href="https://www.tiktok.com/@khan_ag?_r=1&_t=ZS-99hCFMQSiRR" target="_blank" rel="noopener noreferrer" className="social-link" aria-label="TikTok"><TikTok size={18} /></a>
               <a href="https://x.com/AG95a4" target="_blank" rel="noopener noreferrer" className="social-link" aria-label="X (Twitter)"><Twitter size={16} /></a>
-              <a href="https://www.youtube.com/@agkhan12168" target="_blank" rel="noopener noreferrer" className="social-link" aria-label="YouTube"><YouTube size={18} /></a>
+              <a href="https://www.youtube.com/@abdulghaffar76" target="_blank" rel="noopener noreferrer" className="social-link" aria-label="YouTube"><YouTube size={18} /></a>
             </div>
           </div>
 

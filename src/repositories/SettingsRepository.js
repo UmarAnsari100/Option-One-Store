@@ -29,7 +29,7 @@ export class SettingsRepository extends BaseRepository {
           facebook: 'https://www.facebook.com/p/Option-One-Store-100084635444046/',
           tiktok: 'https://www.tiktok.com/@khan_ag?_r=1&_t=ZS-99hCFMQSiRR',
           twitter: 'https://x.com/AG95a4',
-          youtube: 'https://www.youtube.com/@agkhan12168',
+          youtube: 'https://www.youtube.com/@abdulghaffar76',
           whatsapp: '+923000000000'
         }
       };
