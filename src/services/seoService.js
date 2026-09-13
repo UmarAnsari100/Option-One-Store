@@ -25,8 +25,11 @@ export const seoService = {
       'url': 'https://optiononestore.com/',
       'logo': 'https://optiononestore.com/assets/logo.png',
       'sameAs': [
-        'https://instagram.com/option_one_store',
-        'https://facebook.com/optiononestore'
+        'https://www.instagram.com/option_one_store/',
+        'https://www.facebook.com/p/Option-One-Store-100084635444046/',
+        'https://www.tiktok.com/@khan_ag',
+        'https://x.com/AG95a4',
+        'https://www.youtube.com/@agkhan12168'
       ],
       'contactPoint': {
         '@type': 'ContactPoint',

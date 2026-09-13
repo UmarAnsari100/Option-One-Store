@@ -157,19 +157,21 @@ const Hero = () => {
                 whileHover={shouldReduceMotion ? {} : { scale: 1.03, y: -5 }}
                 transition={{ duration: 0.5, ease: luxuryEase }}
               >
-                <div className="card-badge">NEW ARRIVAL</div>
-                <div className="card-product-img">
-                  <img src="https://cf.cjdropshipping.com/cb01749d-a005-45b8-8a8f-ef5fc3d0417f.jpg" alt="Luminous Steel Quartz Watch" />
-                </div>
-                <div className="card-meta">
-                  <h5>Luminous Steel Watch</h5>
-                  <span className="card-price">Rs 12000.00</span>
-                  <div className="card-rating">
-                    {[...Array(5)].map((_, i) => (
-                      <Star key={i} size={9} fill="var(--color-accent)" color="var(--color-accent)" />
-                    ))}
+                <Link to="/shop?category=watches" className="floating-card-link" aria-label="View Luminous Steel Watch">
+                  <div className="card-badge">NEW ARRIVAL</div>
+                  <div className="card-product-img">
+                    <img src="https://cf.cjdropshipping.com/cb01749d-a005-45b8-8a8f-ef5fc3d0417f.jpg" alt="Luminous Steel Quartz Watch" />
                   </div>
-                </div>
+                  <div className="card-meta">
+                    <h5>Luminous Steel Watch</h5>
+                    <span className="card-price">Rs 12,000</span>
+                    <div className="card-rating">
+                      {[...Array(5)].map((_, i) => (
+                        <Star key={i} size={9} fill="var(--color-accent)" color="var(--color-accent)" />
+                      ))}
+                    </div>
+                  </div>
+                </Link>
               </motion.div>
 
               {/* Card 2: Handbag Card */}
@@ -182,18 +184,24 @@ const Hero = () => {
               >
                 <button
                   className={`card-icon-btn ${isHandbagInWishlist ? 'active' : ''}`}
-                  onClick={() => toggleWishlist({ id: 3, name: 'Retro Single-Shoulder Bag', price: 4500.00 })}
+                  onClick={(e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    toggleWishlist({ id: 3, name: 'Retro Single-Shoulder Bag', price: 4500.00 });
+                  }}
                   aria-label="Add to wishlist"
                 >
                   <Heart size={11} fill={isHandbagInWishlist ? "var(--color-accent)" : "none"} color={isHandbagInWishlist ? "var(--color-accent)" : "currentColor"} />
                 </button>
-                <div className="card-product-img">
-                  <img src="https://oss-cf.cjdropshipping.com/product/2026/09/11/09/48e5a0fc-48f0-4469-9c0e-92923fb33f99.jpg" alt="Retro Single-Shoulder Bag" />
-                </div>
-                <div className="card-meta">
-                  <h5>Retro Shoulder Bag</h5>
-                  <span className="card-price">Rs 4500.00</span>
-                </div>
+                <Link to="/shop?category=bags" className="floating-card-link" aria-label="View Retro Single-Shoulder Bag">
+                  <div className="card-product-img">
+                    <img src="https://oss-cf.cjdropshipping.com/product/2026/09/11/09/48e5a0fc-48f0-4469-9c0e-92923fb33f99.jpg" alt="Retro Single-Shoulder Bag" />
+                  </div>
+                  <div className="card-meta">
+                    <h5>Retro Shoulder Bag</h5>
+                    <span className="card-price">Rs 4,500</span>
+                  </div>
+                </Link>
               </motion.div>
 
               {/* Card 3: Necklace Card */}
@@ -206,18 +214,24 @@ const Hero = () => {
               >
                 <button
                   className="card-icon-btn add-to-cart"
-                  onClick={() => addToCart(2, 1)}
+                  onClick={(e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    addToCart(2, 1);
+                  }}
                   aria-label="Add to cart"
                 >
                   <ShoppingBag size={11} />
                 </button>
-                <div className="card-product-img">
-                  <img src="https://cf.cjdropshipping.com/ea5b4ee6-eff3-485f-98ac-d14a7c45a37e.jpg" alt="Fashion Bracelet Set" />
-                </div>
-                <div className="card-meta">
-                  <h5>Fashion Bracelet Set</h5>
-                  <span className="card-price">Rs 1850.00</span>
-                </div>
+                <Link to="/shop?category=jewelry" className="floating-card-link" aria-label="View Fashion Bracelet Set">
+                  <div className="card-product-img">
+                    <img src="https://cf.cjdropshipping.com/ea5b4ee6-eff3-485f-98ac-d14a7c45a37e.jpg" alt="Fashion Bracelet Set" />
+                  </div>
+                  <div className="card-meta">
+                    <h5>Fashion Bracelet Set</h5>
+                    <span className="card-price">Rs 1,850</span>
+                  </div>
+                </Link>
               </motion.div>
             </div>
           </div>

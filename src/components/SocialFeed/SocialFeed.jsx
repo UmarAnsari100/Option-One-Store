@@ -43,19 +43,25 @@ const VideoIcon = ({ size = 16, className = '' }) => (
   </svg>
 );
 
+const OFFICIAL_INSTAGRAM_URL = 'https://www.instagram.com/option_one_store/';
+
 const SocialPostCard = ({ post, isAriaHidden = false }) => {
   const altText = post.caption
     ? post.caption.slice(0, 100).replace(/[#@].*$/, '').trim() || 'Option One Store curated piece'
     : 'Option One Store curated piece';
 
+  const cardUrl = (post.permalink && post.permalink.startsWith('https://www.instagram.com/p/'))
+    ? post.permalink
+    : OFFICIAL_INSTAGRAM_URL;
+
   return (
     <article className="social-post-card" tabIndex={isAriaHidden ? -1 : 0}>
       <a
-        href={post.permalink}
+        href={cardUrl}
         target="_blank"
         rel="noopener noreferrer"
         className="social-post-link"
-        aria-label={`View Instagram post: ${altText}`}
+        aria-label={`View on Instagram: ${altText}`}
         tabIndex={isAriaHidden ? -1 : 0}
       >
         <div className="social-image-wrapper">
@@ -76,7 +82,7 @@ const SocialPostCard = ({ post, isAriaHidden = false }) => {
             <div className="social-overlay-content">
               <div className="social-ig-header">
                 <InstagramIcon size={20} className="social-ig-icon" />
-                <span className="social-view-label">View on Instagram</span>
+                <span className="social-view-label">@option_one_store</span>
               </div>
               {post.caption && (
                 <p className="social-caption-preview">
@@ -125,6 +131,16 @@ const SocialFeed = () => {
         <span className="social-feed-subtitle">CURATED COLLECTION</span>
         <h3 id="curated-collection-heading">Experience the Option One Lifestyle</h3>
         <p>Discover carefully selected luxury pieces designed for timeless elegance and modern living.</p>
+        <a
+          href="https://www.instagram.com/option_one_store/"
+          target="_blank"
+          rel="noopener noreferrer"
+          className="social-feed-insta-cta"
+          aria-label="Follow Option One Store on Instagram"
+        >
+          <InstagramIcon size={16} />
+          <span>Follow @option_one_store</span>
+        </a>
       </div>
 
       {/* Infinite Horizontal Marquee */}

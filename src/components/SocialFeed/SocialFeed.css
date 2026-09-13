@@ -49,6 +49,42 @@
   line-height: 1.6;
 }
 
+.social-feed-insta-cta {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-top: 1.25rem;
+  padding: 0.55rem 1.35rem;
+  font-family: var(--font-ui);
+  font-size: 0.85rem;
+  font-weight: 600;
+  letter-spacing: 0.05em;
+  color: var(--color-primary);
+  background: rgba(201, 162, 39, 0.08);
+  border: 1px solid rgba(201, 162, 39, 0.35);
+  border-radius: 9999px;
+  text-decoration: none;
+  transition: all var(--transition-fast);
+}
+
+.social-feed-insta-cta svg {
+  color: var(--color-accent);
+  transition: transform var(--transition-fast), color var(--transition-fast);
+}
+
+.social-feed-insta-cta:hover {
+  background: var(--color-accent);
+  color: var(--color-white);
+  border-color: var(--color-accent);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 14px rgba(201, 162, 39, 0.25);
+}
+
+.social-feed-insta-cta:hover svg {
+  color: var(--color-white);
+  transform: scale(1.1);
+}
+
 /* Marquee Container & Track */
 .social-marquee-container {
   width: 100%;
@@ -109,6 +145,7 @@
   color: inherit;
   width: 100%;
   height: 100%;
+  cursor: pointer;
 }
 
 .social-image-wrapper {
@@ -117,6 +154,7 @@
   aspect-ratio: 1 / 1;
   overflow: hidden;
   background-color: #eee;
+  cursor: pointer;
 }
 
 .social-post-image {
@@ -147,6 +185,7 @@
   justify-content: center;
   z-index: 2;
   transition: opacity 0.3s ease;
+  pointer-events: none;
 }
 
 .social-post-card:hover .social-video-badge {
@@ -169,6 +208,7 @@
   padding: 1.25rem;
   transition: opacity 0.3s cubic-bezier(0.22, 1, 0.36, 1);
   z-index: 3;
+  pointer-events: none;
 }
 
 .social-post-card:hover .social-post-overlay,

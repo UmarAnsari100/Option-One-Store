@@ -341,24 +341,31 @@
 .floating-glass-card {
   position: absolute;
   z-index: 15;
-  background: rgba(255, 255, 255, 0.55);
-  border: 1px solid rgba(255, 255, 255, 0.45);
-  backdrop-filter: blur(25px);
-  -webkit-backdrop-filter: blur(25px);
+  background: rgba(255, 255, 255, 0.94);
+  border: 1px solid rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
   border-radius: var(--radius-md);
-  padding: 0.55rem 0.9rem 0.55rem 0.65rem;
-  display: flex;
-  align-items: center;
-  gap: 0.55rem;
-  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.03);
-  width: clamp(185px, 14vw, 220px);
+  padding: 0.5rem 0.75rem 0.5rem 0.6rem;
+  box-shadow: 0 14px 35px rgba(0, 0, 0, 0.12), 0 2px 6px rgba(0, 0, 0, 0.04);
+  width: clamp(185px, 13vw, 215px);
   cursor: pointer;
-  transition: box-shadow 0.5s cubic-bezier(0.22, 1, 0.36, 1);
+  transition: box-shadow 0.4s cubic-bezier(0.22, 1, 0.36, 1), transform 0.4s cubic-bezier(0.22, 1, 0.36, 1);
   will-change: transform;
 }
 
 .floating-glass-card:hover {
-  box-shadow: 0 20px 45px rgba(51, 96, 33, 0.08);
+  box-shadow: 0 20px 45px rgba(0, 0, 0, 0.18);
+  background: #ffffff;
+}
+
+.floating-card-link {
+  display: flex;
+  align-items: center;
+  gap: 0.7rem;
+  text-decoration: none;
+  color: inherit;
+  width: 100%;
 }
 
 .card-badge {
@@ -368,44 +375,48 @@
   background-color: var(--color-accent);
   color: var(--color-white);
   font-family: var(--font-ui);
-  font-size: 0.48rem;
+  font-size: 0.52rem;
   font-weight: 700;
   letter-spacing: 0.05em;
-  padding: 0.12rem 0.4rem;
+  padding: 0.15rem 0.45rem;
   border-radius: var(--radius-sm);
   text-transform: uppercase;
+  box-shadow: 0 2px 6px rgba(201, 162, 39, 0.35);
+  z-index: 10;
 }
 
 .card-product-img {
-  width: 35px;
+  width: 44px;
   height: 44px;
-  background-color: rgba(250, 249, 246, 0.5);
+  background-color: #ffffff;
+  border: 1px solid rgba(0, 0, 0, 0.08);
   border-radius: var(--radius-sm);
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 0.12rem;
+  padding: 3px;
   flex-shrink: 0;
+  overflow: hidden;
 }
 
 .card-product-img img {
-  max-width: 100%;
-  max-height: 100%;
-  object-fit: contain;
-  mix-blend-mode: multiply;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: 3px;
 }
 
 .card-meta {
   display: flex;
   flex-direction: column;
-  gap: 0.12rem;
+  gap: 0.15rem;
   flex: 1;
   min-width: 0;
 }
 
 .card-meta h5 {
   font-family: var(--font-ui);
-  font-size: 0.7rem;
+  font-size: 0.78rem;
   font-weight: 600;
   color: var(--color-text-main);
   margin: 0;
@@ -413,18 +424,20 @@
   overflow: hidden;
   text-overflow: ellipsis;
   width: 100%;
+  line-height: 1.25;
 }
 
 .card-price {
   font-family: var(--font-ui);
-  font-size: 0.65rem;
-  font-weight: 500;
-  color: var(--color-text-muted);
+  font-size: 0.7rem;
+  font-weight: 600;
+  color: var(--color-primary);
 }
 
 .card-rating {
   display: flex;
-  gap: 0.05rem;
+  gap: 0.08rem;
+  margin-top: 1px;
 }
 
 /* Card Buttons (Wishlist / Cart) */
@@ -433,24 +446,25 @@
   top: -8px;
   right: -8px;
   background-color: var(--color-white);
-  border: 1px solid rgba(0, 0, 0, 0.05);
-  width: 22px;
-  height: 22px;
+  border: 1px solid rgba(0, 0, 0, 0.1);
+  width: 24px;
+  height: 24px;
   border-radius: 50%;
   display: flex;
   align-items: center;
   justify-content: center;
   color: var(--color-text-muted);
   cursor: pointer;
-  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.05);
-  transition: transform 0.4s cubic-bezier(0.22, 1, 0.36, 1),
-    color 0.4s cubic-bezier(0.22, 1, 0.36, 1);
-  z-index: 20;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  transition: transform 0.3s cubic-bezier(0.22, 1, 0.36, 1),
+    color 0.3s cubic-bezier(0.22, 1, 0.36, 1),
+    background-color 0.3s ease;
+  z-index: 25;
 }
 
 .card-icon-btn svg {
-  width: 11px;
-  height: 11px;
+  width: 12px;
+  height: 12px;
 }
 
 .card-icon-btn:hover {
@@ -466,20 +480,21 @@
   color: var(--color-primary);
 }
 
-/* Floating Card Coordinates positioning (relative to model-composition-container) */
+/* Floating Card Coordinates positioning (placed precisely in the user-highlighted positions) */
 .watch-card {
-  top: 10%;
-  left: clamp(-105px, -6.5vw, -55px);
-}
-
-.bag-card {
-  bottom: 8%;
-  right: clamp(-95px, -6vw, -50px);
+  top: -22px;
+  left: clamp(-155px, -9.5vw, -120px);
 }
 
 .jewelry-card {
-  top: 40%;
-  right: clamp(-105px, -6.5vw, -55px);
+  top: 35%;
+  right: clamp(-145px, -9vw, -115px);
+}
+
+.bag-card {
+  top: 60%;
+  bottom: auto;
+  right: clamp(-145px, -9vw, -115px);
 }
 
 /* Luxury Sparkles Floating Particles */
@@ -664,19 +679,23 @@
   }
 
   .floating-glass-card {
-    width: clamp(170px, 12vw, 195px);
+    width: clamp(165px, 11.5vw, 190px);
   }
 
   .watch-card {
-    left: clamp(-90px, -6vw, -50px);
-  }
-
-  .bag-card {
-    right: clamp(-85px, -5.5vw, -45px);
+    top: -18px;
+    left: clamp(-135px, -8.5vw, -100px);
   }
 
   .jewelry-card {
-    right: clamp(-90px, -6vw, -50px);
+    top: 35%;
+    right: clamp(-130px, -8vw, -95px);
+  }
+
+  .bag-card {
+    top: 60%;
+    bottom: auto;
+    right: clamp(-130px, -8vw, -95px);
   }
 }
 
@@ -696,23 +715,24 @@
   }
 
   .floating-glass-card {
-    width: 175px;
-    padding: 0.5rem 0.8rem 0.5rem 0.6rem;
+    width: 170px;
+    padding: 0.45rem 0.65rem 0.45rem 0.55rem;
   }
 
   .watch-card {
-    top: 10%;
-    left: -65px;
-  }
-
-  .bag-card {
-    bottom: 8%;
-    right: -60px;
+    top: -16px;
+    left: -95px;
   }
 
   .jewelry-card {
-    top: 40%;
-    right: -65px;
+    top: 35%;
+    right: -90px;
+  }
+
+  .bag-card {
+    top: 60%;
+    bottom: auto;
+    right: -90px;
   }
 }
 
@@ -770,23 +790,24 @@
 
   /* Simplify floating cards on tablet without overflow */
   .floating-glass-card {
-    width: 170px;
-    padding: 0.5rem 0.8rem 0.5rem 0.6rem;
+    width: clamp(175px, 20vw, 205px);
+    padding: 0.5rem 0.75rem 0.5rem 0.6rem;
   }
 
   .watch-card {
-    top: 8%;
-    left: -55px;
-  }
-
-  .bag-card {
-    bottom: 8%;
-    right: -50px;
+    top: -14px;
+    left: -75px;
   }
 
   .jewelry-card {
-    top: 38%;
-    right: -55px;
+    top: 35%;
+    right: -75px;
+  }
+
+  .bag-card {
+    top: 60%;
+    bottom: auto;
+    right: -75px;
   }
 }
 

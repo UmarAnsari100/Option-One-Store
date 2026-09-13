@@ -27,15 +27,16 @@ const Facebook = ({ size = 18, ...props }) => (
   </svg>
 );
 
-const Twitter = ({ size = 18, ...props }) => (
-  <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" {...props}>
-    <path d="M22 4s-.7 2.1-2 3.4c1.6 10-9.4 17.3-18 11.6 2.2.1 4.4-.6 6-2C3 15.5.5 9.6 3 5c2.2 2.6 5.6 4.1 9 4-.9-4.2 4-6.6 7-3.8 1.1 0 3-1.2 3-1.2z" />
-  </svg>
-);
 
 const TikTok = ({ size = 18, ...props }) => (
   <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="currentColor" {...props}>
     <path d="M19.59 6.69a4.83 4.83 0 0 1-3.77-4.25V2h-3.45v13.67a2.89 2.89 0 0 1-5.2 1.74 2.89 2.89 0 0 1 2.31-4.64c.29 0 .58.04.85.12V9.4a6.33 6.33 0 0 0-1-.08A6.34 6.34 0 0 0 3 15.66a6.34 6.34 0 0 0 10.82 4.47 6.3 6.3 0 0 0 1.95-4.46V8.04a8.2 8.2 0 0 0 4.82 1.57V6.16c-.33 0-.67-.03-1-.07z" />
+  </svg>
+);
+
+const Twitter = ({ size = 16, ...props }) => (
+  <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="currentColor" {...props}>
+    <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z" />
   </svg>
 );
 
@@ -109,10 +110,10 @@ const Footer = () => {
 
             <div className="social-links">
               <a href="https://www.instagram.com/option_one_store/" target="_blank" rel="noopener noreferrer" className="social-link" aria-label="Instagram"><Instagram size={18} /></a>
-              <a href="#" className="social-link" aria-label="Facebook"><Facebook size={18} /></a>
-              <a href="#" className="social-link" aria-label="Twitter"><Twitter size={18} /></a>
-              <a href="#" className="social-link" aria-label="TikTok"><TikTok size={18} /></a>
-              <a href="#" className="social-link" aria-label="YouTube"><YouTube size={18} /></a>
+              <a href="https://www.facebook.com/p/Option-One-Store-100084635444046/" target="_blank" rel="noopener noreferrer" className="social-link" aria-label="Facebook"><Facebook size={18} /></a>
+              <a href="https://www.tiktok.com/@khan_ag?_r=1&_t=ZS-99hCFMQSiRR" target="_blank" rel="noopener noreferrer" className="social-link" aria-label="TikTok"><TikTok size={18} /></a>
+              <a href="https://x.com/AG95a4" target="_blank" rel="noopener noreferrer" className="social-link" aria-label="X (Twitter)"><Twitter size={16} /></a>
+              <a href="https://www.youtube.com/@agkhan12168" target="_blank" rel="noopener noreferrer" className="social-link" aria-label="YouTube"><YouTube size={18} /></a>
             </div>
           </div>
 
